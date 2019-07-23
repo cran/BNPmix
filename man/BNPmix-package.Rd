@@ -4,8 +4,8 @@
 \name{BNPmix-package}
 \alias{BNPmix}
 \alias{BNPmix-package}
-\title{BNPmix: Algorithms for Pitman-Yor Process Mixtures}
+\title{BNPmix: Bayesian Nonparametric Mixture Models}
 \description{
-Performs Bayesian nonparametric univariate and multivariate density estimation and clustering by means of Pitman-Yor mixtures and Dependent Dirichlet process mixtures for partially exchangeable data.
+Functions to perform Bayesian nonparametric univariate and multivariate density estimation and clustering, by means of Pitman-Yor mixtures, and Dependent Dirichlet process mixtures for partially exchangeable data.
 }
 \keyword{internal}

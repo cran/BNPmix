@@ -28,6 +28,8 @@
 
 \item{wei}{prior weight of the specific processes.}
 
+\item{b}{tuning parameter of weights distribution}
+
 \item{napprox}{number of approximating values.}
 
 \item{n_approx_unif}{number of approximating values of the importance step for the weights updating.}
@@ -43,27 +45,4 @@
 \description{
 C++ function to estimate DDP models with 1 grouping variables
 }
-\examples{
-{
-  data_toy <- c(rnorm(50, -4, 1), rnorm(100, 0, 1), rnorm(50, 4, 1))
-  group_toy <- c(rep(1,100), rep(2,100))
-  grid <- seq(-7, 7, length.out = 50)
-  est_model <- cDDP(data_toy, group_toy, 2, grid, 20, 10,
-    0, 1, 2, 1, 1, 0.5, 10, 1000, 100, 1, 1, 1)
-  \dontshow{
-    data_toy <- c(rnorm(50, -4, 1), rnorm(100, 0, 1), rnorm(50, 4, 1))
-    group_toy <- c(rep(1,100), rep(2,100))
-    grid <- seq(-7, 7, length.out = 50)
-    est_model <- cDDP(data_toy, group_toy, 2, grid, 20, 10,
-      0, 1, 2, 1, 1, 0.5, 10, 1000, 100, 1, 1, 1)
-  }
-  \donttest{
-    data_toy <- c(rnorm(50, -4, 1), rnorm(100, 0, 1), rnorm(50, 4, 1))
-    group_toy <- c(rep(1,100), rep(2,100))
-    grid <- seq(-7, 7, length.out = 50)
-    est_model <- cDDP(data_toy, group_toy, 2, grid, 1000, 100,
-      0, 1, 2, 1, 1, 0.5, 10, 1000, 100, 1, 1, 1)
-  }
-}
-
-}
+\keyword{internal}

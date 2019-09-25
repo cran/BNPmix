@@ -143,8 +143,8 @@ Rcpp::List MAR_L(arma::vec data,
       result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
       result_mu.push_back(mu);
       result_s2(iter - nburn) = s2;
-      arma::vec tab_freq = freq_vec(clust);
-      result_probs.push_back(tab_freq);
+      arma::vec tab_freq = freq_vec(clust) - sigma_PY;
+      result_probs.push_back(tab_freq / n);
       if(out_dens){
         dens = eval_density_L(grid,
                               mu,
@@ -316,8 +316,8 @@ Rcpp::List MAR(arma::vec data,
       result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
       result_mu.push_back(mu);
       result_s2.push_back(s2);
-      arma::vec tab_freq = freq_vec(clust);
-      result_probs.push_back(tab_freq);
+      arma::vec tab_freq = freq_vec(clust) - sigma_PY;
+      result_probs.push_back(tab_freq / n);
 
       if(out_dens){
         dens = eval_density(grid,
@@ -495,8 +495,8 @@ Rcpp::List MAR_mv_L(arma::mat data,
       result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
       result_mu.push_back(mu);
       result_s2.slice(iter - nburn) = s2;
-      arma::vec tab_freq = freq_vec(clust);
-      result_probs.push_back(tab_freq);
+      arma::vec tab_freq = freq_vec(clust) - sigma_PY;
+      result_probs.push_back(tab_freq / n);
 
       if(out_dens){
         dens = eval_density_mv_L(grid,
@@ -697,8 +697,8 @@ Rcpp::List MAR_mv(arma::mat data,
       result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
       result_mu.push_back(mu);
       result_s2.push_back(s2);
-      arma::vec tab_freq = freq_vec(clust);
-      result_probs.push_back(tab_freq);
+      arma::vec tab_freq = freq_vec(clust) - sigma_PY;
+      result_probs.push_back(tab_freq / n);
       if(out_dens){
         dens = eval_density_mv(grid,
                                mu,
@@ -897,8 +897,8 @@ Rcpp::List MAR_mv_P(arma::mat data,
       result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
       result_mu.push_back(mu);
       result_s2.push_back(s2);
-      arma::vec tab_freq = freq_vec(clust);
-      result_probs.push_back(tab_freq);
+      arma::vec tab_freq = freq_vec(clust) - sigma_PY;
+      result_probs.push_back(tab_freq / n);
       if(out_dens){
         dens = eval_density_mv_P(grid,
                                  mu,
@@ -1107,7 +1107,7 @@ Rcpp::List MAR_mv_MKR(arma::vec y,
 
     // if the burn-in phase is complete
     if(iter >= nburn){
-      arma::vec tab_freq = freq_vec(clust);
+      arma::vec tab_freq = freq_vec(clust) - discount;
       result_probs.push_back(tab_freq / n);
 
       result_beta.push_back(beta);

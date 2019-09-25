@@ -5,7 +5,7 @@
 #'
 #' @description The \code{PYregression} function generates a posterior sample
 #' for mixtures of linear regression models inspired by the ANOVA-DDP model
-#' introduced in De Iorio et al. (2004). See \code{details} below for model specification.
+#' introduced in De Iorio et al. (2004). See details below for model specification.
 #'
 #'@param y a vector of observations, univariate dependent variable;
 #'@param x a vector of observations, univariate independent variable;
@@ -33,7 +33,7 @@
 #'
 #'   \item \code{nburn} (mandatory), number of iterations to discard as burn-in.
 #'
-#'   \item \code{method}, the MCMC sampling method to be used (default is \code{'ICS'}). See \code{details}.
+#'   \item \code{method}, the MCMC sampling method to be used. Options are \code{'ICS'}, \code{'MAR'} and \code{'SLI'} (default is \code{'ICS'}). See details.
 #'
 #'   \item \code{nupd}, argument controlling the number of iterations to be displayed on screen: the function reports
 #'   on standard output every time \code{nupd} new iterations have been carried out (default is \code{niter/10}).
@@ -41,9 +41,11 @@
 #'   \item \code{print_message}, control option. If equal to \code{TRUE}, the status is printed
 #'   to standard output every \code{nupd} iterations (default is \code{TRUE}).
 #'
-#'   \item \code{m_imp}, number of generated values for the importance sampling step of \code{method = 'ICS'} (default is 10). See \code{details}.
+#'   \item \code{m_imp}, number of generated values for the importance sampling step of \code{method = 'ICS'} (default is 10). See details.
 #'
-#'   \item \code{m_marginal}, number of generated values for the augmentation step needed, if \code{method = 'MAR'}, to implement Algorithm 8 of Neal, 2000. (Default is 100). See \code{details}.
+#'   \item \code{slice_type}, when \code{method = 'SLI'} it specifies the type of slice sampler. Options are \code{'DEP'} for dependent slice-efficient, and \code{'INDEP'} for independent slice-efficient (default is \code{'DEP'}). See details.
+#'
+#'   \item \code{m_marginal}, number of generated values for the augmentation step needed, if \code{method = 'MAR'}, to implement Algorithm 8 of Neal, 2000. (Default is 100). See details.
 #'
 #'   \item \code{hyper}, if equal to \code{TRUE}, hyperprior distributions on the base measure's
 #'   parameters are added, as specified in \code{prior} and explained in \code{details} (default is \code{TRUE}).
@@ -62,7 +64,7 @@
 #'  \code{tau1} and \code{zeta1} are the shape and rate parameters of the gamma hyperprior on
 #'  \code{b0} (default is 1 for both);
 #'  \code{n1} and \code{S1} are the parameters (degrees of freedom and scale) of the Wishart prior for \code{S0}
-#'  (default 4 and identity matrix);  See \code{details}.
+#'  (default 4 and identity matrix);  See details.
 #'
 #' @details
 #' This function fits a Pitman-Yor process mixture of Gaussian linear regression models, i.e
@@ -81,14 +83,16 @@
 #' \strong{Posterior simulation methods}
 #'
 #' This generic function implements three types of MCMC algorithms for posterior simulation.
-#' The default method is the importance conditional sampler (Canale et al. 2019). Other options are
-#' the marginal sampler (algorithm 8 of Neal, 2000)  and the dependent slice-efficient sampler (Kalli et al. 2011).
+#' The default method is the importance conditional sampler \code{'ICS'} (Canale et al. 2019). Other options are
+#' the marginal sampler \code{'MAR'} (algorithm 8 of Neal, 2000) and the slice sampler \code{'SLI'} (Kalli et al. 2011).
 #' The importance conditional sampler performs an importance sampling step when updating the values of
 #' individual parameters \eqn{\theta}, which requires to sample \code{m_imp} values from a suitable
 #' proposal. Large values of \code{m_imp} are known to improve the mixing of the posterior distribution
 #' at the cost of increased running time (Canale et al. 2019). When updateing the individual parameter
 #' \eqn{\theta}, Algorithm 8 of Neal, 2000, requires to sample \code{m_marginal} values from the base
-#' measure. \code{m_marginal} can be chosen arbitrarily.
+#' measure. \code{m_marginal} can be chosen arbitrarily. Two options are available for the slice sampler,
+#' namely the dependent slice-efficient sampler (\code{slice_type = 'DEP'}), which is set as default, and the
+#' independent slice-efficient sampler (\code{slice_type = 'INDEP'}) (Kalli et al. 2011).
 #'
 #'
 #' @return A \code{BNPdens} class object containing the estimated density and
@@ -132,9 +136,38 @@ PYregression <- function(y, x,
                           mcmc = list(),
                           prior = list(),
                           output = list()){
+
+  if(!is.vector(y)) stop("Wrong dimensions: y need to be a vector")
+  if(!is.vector(x)) stop("Wrong dimensions: x need to be a vector")
+
+  if(!is.list(mcmc)) stop("mcmc must be a list")
+  if(!is.list(prior)) stop("prior must be a list")
+  if(!is.list(output)) stop("output must be a list")
+
+  if(!is.null(mcmc$niter) && (!is.numeric(mcmc$niter) | (mcmc$niter<1))) stop("mcmc$niter must be a positive integer")
+  if(!is.null(mcmc$nburn) && (!is.numeric(mcmc$nburn) | (mcmc$nburn<1)) & (mcmc$nburn>mcmc$niter)) stop("mcmc$nburn must be a positive integer less than niter")
+  if(!is.null(mcmc$nupd) && (!is.numeric(mcmc$nupd)  | (mcmc$nupd<1))) stop("mcmc$nupd must be a positive integer")
+  if(!is.null(mcmc$m_imp) && (!is.numeric(mcmc$m_imp) | (mcmc$m_imp<1))) stop("mcmc$m_imp must be a positive integer")
+  if(!is.null(mcmc$print_message) & (!is.logical(mcmc$print_message))) stop("mcmc$print_message must be a logical value")
+  if(!is.null(mcmc$hyper) & !is.logical(mcmc$hyper)) stop("mcmc$hyper must be a logical value")
+  if(!is.null(mcmc$m_marginal) & !is.numeric(mcmc$m_marginal)) stop("mcmc$m_marginal must be a numerical value")
+
+  if(!is.null(prior$m0) & !is.vector(prior$m0)) stop("prior$m0 must be a vector of size 2")
+  if(!is.null(prior$S0) && (!is.matrix(prior$S0) | ncol(prior$S0) != nrow(prior$S0) | ncol(prior$S0) !=2) ) stop("prior$S0 must be a square matrix of dimension 2")
+  if(!is.null(prior$a0) && (!is.numeric(prior$a0) | (prior$a0<1))) stop("prior$a0 must be a positive value")
+  if(!is.null(prior$b0) && (!is.numeric(prior$b0) | (prior$b0<1))) stop("prior$n0 must be a positive value")
+  if(!is.null(prior$m1) & !is.vector(prior$m1)) stop("prior$m1 must be a vector")
+  if(!is.null(prior$S1) & !is.matrix(prior$S1)) stop("prior$S1 must be a matrix")
+  if(!is.null(prior$k1) & !is.numeric(prior$k1)) stop("prior$k1 must be a numerical value")
+  if(!is.null(prior$tau1) && (!is.numeric(prior$tau1) | (prior$tau1<1)))  stop("prior$tau1 must be a positive value")
+  if(!is.null(prior$zeta1) && (!is.numeric(prior$zeta1) | (prior$zeta1<1)))  stop("prior$zeta1 must be a positive value")
+  if(!is.null(prior$n1) & !is.numeric(prior$n1)) stop("prior$n1 must be a numerical value")
+  if(!is.null(prior$strength) & !is.numeric(prior$strength)) stop("prior$strength must be a numerical value")
+  if(!is.null(prior$discount) & !is.numeric(prior$discount)) stop("prior$discount must be a numerical value")
+
   # mandatory parameters
   if(is.null(mcmc$niter)) stop("Missing number of iterations")
-  if(is.null(mcmc$nburn)) stop("Missing number of burn-in iterations")
+  if(is.null(mcmc$nburn)) mcmc$nburn = 0
 
   # add variable for the intercept
   x <- as.matrix(cbind(rep(1, length(x)), x))
@@ -156,9 +189,8 @@ PYregression <- function(y, x,
     mean_dens = FALSE
     mcmc_dens = TRUE
     if(is.null(output$grid_y)){
-      mcmc_dens = FALSE
-      grid_y = 0
-      grid_x = matrix(c(0,0), ncol = 2)
+      grid_y = seq(from = min(y) - 0.1 * diff(range(y)), to = max(y) + 0.1 * diff(range(y)), length.out = 30)
+      grid_x = cbind(rep(1,4), seq(from = min(x) - 0.1 * diff(range(x)), to = max(x) + 0.1 * diff(range(x)), length.out = 4))
     } else {
       grid_x <- cbind(rep(1, length(output$grid_x)), output$grid_x)
       grid_y = output$grid_y
@@ -167,9 +199,8 @@ PYregression <- function(y, x,
     mean_dens = TRUE
     mcmc_dens = TRUE
     if(is.null(output$grid_y)){
-      mcmc_dens = FALSE
-      grid_y = 0
-      grid_x = matrix(c(0,0), ncol = 2)
+      grid_y = seq(from = min(y) - 0.1 * diff(range(y)), to = max(y) + 0.1 * diff(range(y)), length.out = 30)
+      grid_x = cbind(rep(1,4), seq(from = min(x) - 0.1 * diff(range(x)), to = max(x) + 0.1 * diff(range(x)), length.out = 4))
     } else {
       grid_x <- cbind(rep(1, length(output$grid_x)), output$grid_x)
       grid_y = output$grid_y
@@ -177,8 +208,8 @@ PYregression <- function(y, x,
   } else if (output$out == "CLUST"){
     mean_dens = FALSE
     mcmc_dens = FALSE
-    grid_y = 0
-    grid_x = matrix(c(0,0), ncol = 2)
+    grid_y = seq(from = min(y) - 0.1 * diff(range(y)), to = max(y) + 0.1 * diff(range(y)), length.out = 2)
+    grid_x = cbind(rep(1,2), seq(from = min(x) - 0.1 * diff(range(x)), to = max(x) + 0.1 * diff(range(x)), length.out = 2))
   }
 
   # mcmc_dens = ifelse(is.null(output$mcmc_dens), TRUE, output$mcmc_dens)
@@ -192,8 +223,18 @@ PYregression <- function(y, x,
   #   grid_y = output$grid_y
   # }
 
+  slice_type <- mcmc$slice_type
+  if(is.null(slice_type)){ slice_type <- "DEP"}
+  if(!(slice_type == "DEP" | slice_type == "INDEP")) stop("Wrong mcmc$slice_type setting")
   if(!(method == "ICS" | method == "SLI" | method == "MAR")) stop("Wrong method setting")
   hyper = ifelse(is.null(mcmc$hyper), TRUE, mcmc$hyper)
+
+  if(is.null(mcmc$wei_slice)){
+    indep_sli = "DEFAULT"
+  } else {
+    indep_sli = "CUSTOM"
+  }
+  if(length(mcmc$wei_slice) > 2) stop("Wrong mcmc$wei_slice setting")
 
   # if null, initialize default parameters
   if(hyper){
@@ -232,11 +273,24 @@ PYregression <- function(y, x,
                              m1, k1, n1, S1, tau1, zeta1, strength, m_imp, nupd, out_param,
                              mcmc_dens, discount, print_message, mean_dens, hyper)
 
-  } else if(method == "SLI"){
+  } else if(method == "SLI" & slice_type == "INDEP"){
 
     est_model <- cSLI_mv_MKR(y, x, grid_y, grid_x, niter, nburn, m0, S0, a0, b0,
                             m1, k1, n1, S1, tau1, zeta1, strength, nupd, out_param,
-                            mcmc_dens, discount, print_message, mean_dens, hyper)
+                            mcmc_dens, discount, print_message, mean_dens, hyper, TRUE)
+
+  } else if(method == "SLI" & slice_type == "DEP"){
+
+    if(indep_sli == "DEFAULT"){
+      est_model <- cSLI_mv_MKR(y, x, grid_y, grid_x, niter, nburn, m0, S0, a0, b0,
+                               m1, k1, n1, S1, tau1, zeta1, strength, strength, discount, nupd, out_param,
+                               mcmc_dens, discount, print_message, mean_dens, hyper, FALSE)
+    }
+    if(indep_sli == "CUSTOM"){
+      est_model <- cSLI_mv_MKR(y, x, grid_y, grid_x, niter, nburn, m0, S0, a0, b0,
+                               m1, k1, n1, S1, tau1, zeta1, strength, mcmc$wei_slice[1], mcmc$wei_slice[2],
+                               nupd, out_param, mcmc_dens, discount, print_message, mean_dens, hyper, FALSE)
+    }
 
   } else if(method == "MAR"){
 

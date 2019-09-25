@@ -15,9 +15,9 @@ PYdensity(y, mcmc = list(), prior = list(), output = list())
 
   \item \code{nburn} (mandatory), number of iterations to discard as burn-in.
 
-  \item \code{method}, the MCMC sampling method to be used (default is \code{'ICS'}). See \code{details}.
+  \item \code{method}, the MCMC sampling method to be used, options are \code{'ICS'}, \code{'MAR'} and \code{'SLI'} (default is \code{'ICS'}). See details.
 
-  \item \code{model}, the type of model to be fitted (default is \code{'LS'}). See \code{details}.
+  \item \code{model}, the type of model to be fitted (default is \code{'LS'}). See details.
 
   \item \code{nupd}, argument controlling the number of iterations to be displayed on screen: the function reports
   on standard output every time \code{nupd} new iterations have been carried out (default is \code{niter/10}).
@@ -25,7 +25,9 @@ PYdensity(y, mcmc = list(), prior = list(), output = list())
   \item \code{print_message}, control option. If equal to \code{TRUE}, the status is printed
   to standard output every \code{nupd} iterations (default is \code{TRUE}).
 
-  \item \code{m_imp}, number of generated values for the importance sampling step of \code{method = 'ICS'} (default is 10). See \code{details}.
+  \item \code{m_imp}, number of generated values for the importance sampling step of \code{method = 'ICS'} (default is 10). See details.
+
+  \item \code{slice_type}, when \code{method = 'SLI'} it specifies the type of slice sampler. Options are \code{'DEP'} for dependent slice-efficient, and \code{'INDEP'} for independent slice-efficient (default is \code{'DEP'}). See details.
 
   \item \code{hyper}, if equal to \code{TRUE}, hyperprior distributions on the base measure's
   parameters are added, as specified in \code{prior} and explained in \code{details} (default is \code{TRUE}).
@@ -47,7 +49,7 @@ The remaining parameters depend on the model choice.
  specifically, \code{m1} and \code{k1} are the mean parameter and the scale factor defining the
  normal hyperprior on \code{m0} (default are 0 and 1), and
  \code{a1} and \code{b1} are shape and rate parameters of the inverse gamma hyperprior on \code{b0}
- (default are 1 and 2). See \code{details}.
+ (default are 1 and 2). See details.
 
 \item If \code{model = 'LS'} (location-scale mixture) and \code{y} is univariate:
 
@@ -60,7 +62,7 @@ The remaining parameters depend on the model choice.
  \code{tau1} and \code{zeta1} are shape and rate parameters of the gamma hyperprior on
  \code{k0} (default is 1 for both);
  \code{a1} and \code{b1} are shape and rate parameters of the gamma hyperprior on
- \code{b0}  (default is 1 for both). See \code{details}.
+ \code{b0}  (default is 1 for both). See details.
 
 \item If \code{model = 'L'} (location mixture) and \code{y} is multivariate (\code{p}-variate):
 
@@ -71,7 +73,7 @@ The remaining parameters depend on the model choice.
  If \code{hyper = TRUE}, optional hyperpriors on the base measure's parameters are added:
  specifically, \code{m1} and \code{k1} are the mean parameter and the scale factor defining the
  normal hyperprior on \code{m0} (default are a vector of zeroes and 1), and
- \code{lambda} and \code{Lambda1} are the parameters (degrees of freedom and scale) of the inverse Wishart prior on \code{S20} (default are \code{p}+2 and the identity matrix). See \code{details}.
+ \code{lambda} and \code{Lambda1} are the parameters (degrees of freedom and scale) of the inverse Wishart prior on \code{S20} (default are \code{p}+2 and the identity matrix). See details.
 
 \item If \code{model = 'LS'} (location-scale mixture) and \code{y} is multivariate (\code{p}-variate):
 
@@ -84,7 +86,7 @@ location parameter (default are a vector of zeros and 1), and
  \code{m0} (default are a vector of zeroes and the identity matrix);
  \code{tau1} and \code{zeta1} are shape and rate parameters of the gamma hyperprior on
  \code{k0} (default is 1 for both);
- \code{n1} and \code{Sigma1} are the parameters (degrees of freedom and scale) of the Wishart prior for \code{Sigma0} (default are \code{p}+2 and the identity matrix divided \code{p}+2). See \code{details}.
+ \code{n1} and \code{Sigma1} are the parameters (degrees of freedom and scale) of the Wishart prior for \code{Sigma0} (default are \code{p}+2 and the identity matrix divided \code{p}+2). See details.
 
 
 \item If \code{model = 'DLS'} (diagonal location-scale mixture):
@@ -99,7 +101,7 @@ If \code{hyper = TRUE}, optional hyperpriors on the base measure's parameters ar
  \code{tau1} and \code{zeta1} are vectors of shape and rate parameters of the gamma hyperpriors on the components of
  \code{k0} (default is a vector of ones for both);
  \code{a1} and \code{b1} are vectors of shape and rate parameters of the gamma hyperpriors on the components of
- \code{b0}  (default is a vector of ones for both). See \code{details}.
+ \code{b0}  (default is a vector of ones for both). See details.
 }}
 
 \item{output}{a list of arguments for generating posterior output. It contains:
@@ -197,12 +199,14 @@ For this specification, the base measure is assumed defined as the product of \e
 \strong{Posterior simulation methods}
 
 This generic function implements three types of MCMC algorithms for posterior simulation.
-The default method is the importance conditional sampler (Canale et al. 2019). Other options are
-the marginal sampler (Neal, 2000)  and the dependent slice-efficient sampler (Kalli et al. 2011).
+The default method is the importance conditional sampler \code{'ICS'} (Canale et al. 2019). Other options are
+the marginal sampler \code{'MAR'} (Neal, 2000) and the slice sampler \code{'SLI'} (Kalli et al. 2011).
 The importance conditional sampler performs an importance sampling step when updating the values of
 individual parameters \eqn{\theta}, which requires to sample \code{m_imp} values from a suitable
 proposal. Large values of \code{m_imp} are known to improve the mixing of the chain
-at the cost of increased running time (Canale et al. 2019).
+at the cost of increased running time (Canale et al. 2019). Two options are available for the slice sampler,
+namely the dependent slice-efficient sampler (\code{slice_type = 'DEP'}), which is set as default, and the
+independent slice-efficient sampler (\code{slice_type = 'INDEP'}) (Kalli et al. 2011).
 }
 \examples{
 data_toy <- cbind(c(rnorm(100, -3, 1), rnorm(100, 3, 1)),

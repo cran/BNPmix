@@ -478,6 +478,7 @@ NULL
 #' @param sigma_PY second parameter of PY
 #' @param print_message print the status
 #' @param hyper, if TRUE use hyperpriors, default TRUE
+#' @param indep, if TRUE use the independent slice efficient
 NULL
 
 #' @export
@@ -505,6 +506,7 @@ NULL
 #' @param print_message print the status
 #' @param light_dens if TRUE return only the posterior mean of the density
 #' @param hyper, if TRUE use hyperpriors, default TRUE
+#' @param indep if TRUE use independent slice efficient
 NULL
 
 #' @export
@@ -534,6 +536,7 @@ NULL
 #' @param print_message print the status
 #' @param light_dens if TRUE return only the posterior mean of the density
 #' @param hyper, if TRUE use hyperpriors, default TRUE
+#' @param indep if TRUE use the independent slice efficient
 NULL
 
 #' @export
@@ -563,6 +566,7 @@ NULL
 #' @param print_message print the status
 #' @param light_dens if TRUE return only the posterior mean of the density
 #' @param hyper, if TRUE use hyperpriors, default TRUE
+#' @param indep if TRUE use the independent slice efficient
 NULL
 
 #' @export
@@ -595,28 +599,28 @@ NULL
 #' @param hyper, if TRUE use hyperpriors, default TRUE
 NULL
 
-cSLI_L <- function(data, grid, niter, nburn, m0, s20, a0, b0, m1, k1, a1, b1, mass, nupd = 0L, out_param = 0L, out_dens = 1L, sigma_PY = 0, print_message = 1L, hyper = TRUE) {
-    .Call('_BNPmix_cSLI_L', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, s20, a0, b0, m1, k1, a1, b1, mass, nupd, out_param, out_dens, sigma_PY, print_message, hyper)
+cSLI_L <- function(data, grid, niter, nburn, m0, s20, a0, b0, m1, k1, a1, b1, mass, param_seq_one, param_seq_two, nupd = 0L, out_param = 0L, out_dens = 1L, sigma_PY = 0, print_message = 1L, hyper = TRUE, indep = FALSE) {
+    .Call('_BNPmix_cSLI_L', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, s20, a0, b0, m1, k1, a1, b1, mass, param_seq_one, param_seq_two, nupd, out_param, out_dens, sigma_PY, print_message, hyper, indep)
 }
 
-cSLI <- function(data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, mass, nupd = 0L, out_param = 0L, out_dens = 1L, sigma_PY = 0, print_message = 1L, hyper = 1L) {
-    .Call('_BNPmix_cSLI', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, mass, nupd, out_param, out_dens, sigma_PY, print_message, hyper)
+cSLI <- function(data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, mass, param_seq_one, param_seq_two, nupd = 0L, out_param = 0L, out_dens = 1L, sigma_PY = 0, print_message = 1L, hyper = 1L, indep = TRUE) {
+    .Call('_BNPmix_cSLI', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, mass, param_seq_one, param_seq_two, nupd, out_param, out_dens, sigma_PY, print_message, hyper, indep)
 }
 
-cSLI_mv_L <- function(data, grid, niter, nburn, m0, S20, S0, n0, m1, k1, theta1, Theta1, mass, nupd = 0L, out_param = 0L, out_dens = 1L, sigma_PY = 0, print_message = 1L, light_dens = 1L, hyper = 1L) {
-    .Call('_BNPmix_cSLI_mv_L', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, S20, S0, n0, m1, k1, theta1, Theta1, mass, nupd, out_param, out_dens, sigma_PY, print_message, light_dens, hyper)
+cSLI_mv_L <- function(data, grid, niter, nburn, m0, S20, S0, n0, m1, k1, theta1, Theta1, mass, param_seq_one, param_seq_two, nupd = 0L, out_param = 0L, out_dens = 1L, sigma_PY = 0, print_message = 1L, light_dens = 1L, hyper = 1L, indep = TRUE) {
+    .Call('_BNPmix_cSLI_mv_L', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, S20, S0, n0, m1, k1, theta1, Theta1, mass, param_seq_one, param_seq_two, nupd, out_param, out_dens, sigma_PY, print_message, light_dens, hyper, indep)
 }
 
-cSLI_mv <- function(data, grid, niter, nburn, m0, k0, S0, n0, m1, S1, tau1, tau2, theta1, Theta1, mass, nupd = 0L, out_param = 0L, out_dens = 1L, sigma_PY = 0, print_message = 1L, light_dens = 1L, hyper = 1L) {
-    .Call('_BNPmix_cSLI_mv', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, k0, S0, n0, m1, S1, tau1, tau2, theta1, Theta1, mass, nupd, out_param, out_dens, sigma_PY, print_message, light_dens, hyper)
+cSLI_mv <- function(data, grid, niter, nburn, m0, k0, S0, n0, m1, S1, tau1, tau2, theta1, Theta1, mass, param_seq_one, param_seq_two, nupd = 0L, out_param = 0L, out_dens = 1L, sigma_PY = 0, print_message = 1L, light_dens = 1L, hyper = 1L, indep = TRUE) {
+    .Call('_BNPmix_cSLI_mv', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, k0, S0, n0, m1, S1, tau1, tau2, theta1, Theta1, mass, param_seq_one, param_seq_two, nupd, out_param, out_dens, sigma_PY, print_message, light_dens, hyper, indep)
 }
 
-cSLI_mv_P <- function(data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, mass, nupd = 0L, out_param = 0L, out_dens = 1L, sigma_PY = 0, print_message = 1L, light_dens = 1L, hyper = 1L) {
-    .Call('_BNPmix_cSLI_mv_P', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, mass, nupd, out_param, out_dens, sigma_PY, print_message, light_dens, hyper)
+cSLI_mv_P <- function(data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, mass, param_seq_one, param_seq_two, nupd = 0L, out_param = 0L, out_dens = 1L, sigma_PY = 0, print_message = 1L, light_dens = 1L, hyper = 1L, indep = TRUE) {
+    .Call('_BNPmix_cSLI_mv_P', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, mass, param_seq_one, param_seq_two, nupd, out_param, out_dens, sigma_PY, print_message, light_dens, hyper, indep)
 }
 
-cSLI_mv_MKR <- function(y, covs, grid_response, grid_covs, niter, nburn, beta0, Sb0, a0, b0, beta1, k1, sb1, Sb1, tau1, tau2, strength, nupd = 0L, out_param = 0L, out_dens = 1L, discount = 0, print_message = 1L, light_dens = 1L, hyper = 1L) {
-    .Call('_BNPmix_cSLI_mv_MKR', PACKAGE = 'BNPmix', y, covs, grid_response, grid_covs, niter, nburn, beta0, Sb0, a0, b0, beta1, k1, sb1, Sb1, tau1, tau2, strength, nupd, out_param, out_dens, discount, print_message, light_dens, hyper)
+cSLI_mv_MKR <- function(y, covs, grid_response, grid_covs, niter, nburn, beta0, Sb0, a0, b0, beta1, k1, sb1, Sb1, tau1, tau2, strength, param_seq_one, param_seq_two, nupd = 0L, out_param = 0L, out_dens = 1L, discount = 0, print_message = 1L, light_dens = 1L, hyper = 1L, indep = TRUE) {
+    .Call('_BNPmix_cSLI_mv_MKR', PACKAGE = 'BNPmix', y, covs, grid_response, grid_covs, niter, nburn, beta0, Sb0, a0, b0, beta1, k1, sb1, Sb1, tau1, tau2, strength, param_seq_one, param_seq_two, nupd, out_param, out_dens, discount, print_message, light_dens, hyper, indep)
 }
 
 #' @export BNPmix_psm

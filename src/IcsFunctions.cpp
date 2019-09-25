@@ -356,7 +356,6 @@ void hyper_accelerate_ICS(arma::vec mu,
 
   double m_temp, s2_temp, tau1_temp, tau2_temp, a_temp, b_temp, mu_m;
   int k = mu.n_elem;
-  mu_m = arma::accu(mu) / k;
 
   tau1_temp = tau1 + k / 2;
   tau2_temp = tau2 + arma::accu(pow(mu - m0, 2) / s2) / 2;

@@ -17,8 +17,6 @@
 # \item \code{mcmc_dens}, if equal to \code{TRUE}, the function returns a total of \code{niter}-\code{nburn} realizations of the posterior
 # densities, that is one per stored iteration, evaluated at
 # \code{grid} (default is \code{TRUE}). See \code{value} for details.
-#
-# \item \code{mean_dens}, if equal to \code{TRUE}, the function returns only the posterior mean of the densities, default is \code{TRUE}. See \code{value} for details.
 #' }
 #'
 #' @param mcmc list of MCMC arguments:
@@ -106,7 +104,27 @@ DDPdensity <- function(y,
   if(!is.vector(y)) stop("Wrong data dimension")
   if(!is.vector(group) & !is.factor(group)) stop("Wrong group dimension")
   if(is.null(mcmc$niter)) stop("Missing number of iterations")
-  if(is.null(mcmc$nburn)) stop("Missing number of burn-in iterations")
+  if(is.null(mcmc$nburn)) mcmc$nburn = 0
+
+  if(!is.list(mcmc)) stop("mcmc must be a list")
+  if(!is.list(prior)) stop("prior must be a list")
+  if(!is.list(output)) stop("output must be a list")
+
+  if(!is.null(mcmc$niter) && (!is.numeric(mcmc$niter) | (mcmc$niter<1))) stop("mcmc$iter must be a positive integer")
+  if(!is.null(mcmc$nburn) && (!is.numeric(mcmc$nburn) | (mcmc$nburn<1)) & (mcmc$nburn>mcmc$niter)) stop("mcmc$nburn must be a positive integer less than niter")
+  if(!is.null(mcmc$nupd) && (!is.numeric(mcmc$nupd)  | (mcmc$nupd<1))) stop("mcmc$nupd must be a positive integer")
+  if(!is.null(mcmc$m_imp) && (!is.numeric(mcmc$m_imp) | (mcmc$m_imp<1))) stop("mcmc$m_imp must be a positive integer")
+  if(!is.null(mcmc$print_message) & (!is.logical(mcmc$print_message))) stop("mcmc$print_message must be a logical value")
+  if(!is.null(mcmc$napprox_unif) && ((!is.numeric(mcmc$napprox_unif) | (mcmc$napprox_unif<1)))) stop("mcmc$napprox_unif must be a positive integer")
+
+
+  if(!is.null(prior$m0) & !is.numeric(prior$m0)) stop("prior$m0 must be a numerical value")
+  if(!is.null(prior$k0) && (!is.numeric(prior$k0) | (prior$k0<=0))) stop("prior$k0 must be a numerical positive value")
+  if(!is.null(prior$a0) && (!is.numeric(prior$a0) | (prior$a0<=0))) stop("prior$a0 must be a numerical positive value")
+  if(!is.null(prior$b0) && (!is.numeric(prior$b0) | (prior$b0<=0))) stop("prior$b0 must be a numerical positive value")
+  if(!is.null(prior$strength) & !is.numeric(prior$strength)) stop("prior$strength must be a numerical value")
+  if(!is.null(prior$wei) && (!is.numeric(prior$wei) | (prior$wei<0) | (prior$wei>1))) stop("prior$wei must be a numerical value between 0 and 1")
+  if(!is.null(output$grid) & (!is.vector(output$grid))) stop("output$grid must be a vector")
 
   # if mcmc misses some parts, add default
   niter = mcmc$niter
@@ -114,7 +132,7 @@ DDPdensity <- function(y,
   nupd = ifelse(is.null(mcmc$nupd), round(niter / 10), mcmc$nupd)
   print_message = ifelse(is.null(mcmc$print_message), TRUE, mcmc$print_message)
   napprox_unif = ifelse(is.null(mcmc$napprox_unif), 100, mcmc$napprox_unif)
-  napprox = ifelse(is.null(mcmc$napprox), 10, mcmc$napprox)
+  m_imp = ifelse(is.null(mcmc$m_imp), 10, mcmc$m_imp)
 
   # output
   output$out_type = ifelse(is.null(output$out_type), "FULL", output$out_type)
@@ -122,8 +140,7 @@ DDPdensity <- function(y,
     mean_dens = FALSE
     mcmc_dens = TRUE
     if(is.null(output$grid)){
-      mcmc_dens = FALSE
-      grid_use = 0
+      grid_use = seq(from = min(y) - 0.1 * diff(range(y)), to = max(y) + 0.1 * diff(range(y)), length.out = 30)
     } else {
       if(length(dim(output$grid)) > 1) stop("Wrong grid dimension")
       grid_use <- as.vector(output$grid)
@@ -132,8 +149,7 @@ DDPdensity <- function(y,
     mean_dens = TRUE
     mcmc_dens = TRUE
     if(is.null(output$grid)){
-      mcmc_dens = FALSE
-      grid_use = 0
+      grid_use = seq(from = min(y) - 0.1 * diff(range(y)), to = max(y) + 0.1 * diff(range(y)), length.out = 30)
     } else {
       if(length(dim(output$grid)) > 1) stop("Wrong grid dimension")
       grid_use <- as.vector(output$grid)
@@ -141,18 +157,8 @@ DDPdensity <- function(y,
   } else if (output$out_type == "CLUST"){
     mean_dens = FALSE
     mcmc_dens = FALSE
-    grid_use = 0
+    grid_use = seq(from = min(y) - 0.1 * diff(range(y)), to = max(y) + 0.1 * diff(range(y)), length.out = 30)
   }
-#
-#   mean_dens = ifelse(is.null(output$mean_dens), TRUE, output$mean_dens)
-#   mcmc_dens = ifelse(is.null(output$mcmc_dens), TRUE, output$mcmc_dens)
-#   if(is.null(output$grid)){
-#     mcmc_dens = FALSE
-#     grid = 0
-#   } else {
-#     if(length(dim(output$grid)) > 1) stop("Wrong grid dimension")
-#     grid_use <- as.vector(output$grid)
-#   }
 
   group <- as.numeric(as.factor(group))
   ngr   <- length(unique(group))
@@ -178,7 +184,7 @@ DDPdensity <- function(y,
                     b0,
                     strength,
                     wei,
-                    napprox,
+                    m_imp,
                     napprox_unif,
                     nupd,
                     mcmc_dens,

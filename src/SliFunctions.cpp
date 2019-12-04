@@ -263,7 +263,7 @@ void grow_param_indep_SLI_PY_L(arma::vec &mu,
   int k_old = mu.n_elem;
   int k = xi.n_elem;
 
-  while(sum((1 - u) < xi_sum) < n){
+  while(sum((1 - u) <= xi_sum) < n){
 
     k = xi.n_elem;
     v.resize(k + 1);
@@ -570,7 +570,8 @@ void grow_param_SLI_PY(arma::vec &mu,
                        double b0,
                        double mass,
                        int n,
-                       double sigma_PY){
+                       double sigma_PY,
+                       int &bound){
   double xtemp, ytemp;
   double w_sum = arma::accu(w);
   int new_val;
@@ -579,20 +580,37 @@ void grow_param_SLI_PY(arma::vec &mu,
 
   while(sum((1 - u) < w_sum) < n){
 
-    k = w.n_elem;
-    v.resize(k + 1);
-    w.resize(k + 1);
+    if(k < pow(10, 4) - 1){
+      k = w.n_elem;
+      v.resize(k + 1);
+      w.resize(k + 1);
 
-    xtemp = arma::randg(arma::distr_param(1.0 - sigma_PY, 1.0));
-    ytemp = arma::randg(arma::distr_param(mass + (k + 1) * sigma_PY, 1.0));
-    v[k]  = xtemp / (xtemp + ytemp);
+      xtemp = arma::randg(arma::distr_param(1.0 - sigma_PY, 1.0));
+      ytemp = arma::randg(arma::distr_param(mass + (k + 1) * sigma_PY, 1.0));
+      v[k]  = xtemp / (xtemp + ytemp);
 
-    if(k == 0){
-      w[k] = v[k];
-    }else{
-      w[k] = v[k] * ((1 - v[k-1]) * w[k - 1]) / v[k-1];
+      if(k == 0){
+        w[k] = v[k];
+      }else{
+        w[k] = v[k] * ((1 - v[k-1]) * w[k - 1]) / v[k-1];
+      }
+      w_sum = arma::accu(w);
+    } else {
+      bound += 1;
+      k = w.n_elem;
+      v.resize(k + 1);
+      w.resize(k + 1);
+
+      v[k]  = 1;
+
+      if(k == 0){
+        w[k] = v[k];
+      }else{
+        w[k] = v[k] * ((1 - v[k-1]) * w[k - 1]) / v[k-1];
+      }
+      w_sum = arma::accu(w);
     }
-    w_sum = arma::accu(w);
+
   }
 
   if(w.n_elem > k_old){
@@ -643,35 +661,63 @@ void grow_param_indep_SLI_PY(arma::vec &mu,
                              int n,
                              double sigma_PY,
                              double param_seq_one,
-                             double param_seq_two){
+                             double param_seq_two,
+                             int &bound){
   double xtemp, ytemp;
   double xi_sum = arma::accu(xi);
   int new_val;
   int k_old = mu.n_elem;
   int k = xi.n_elem;
 
-  while(sum((1 - u) < xi_sum) < n){
+  while(sum((1 - u) <= xi_sum) < n){
 
-    k = xi.n_elem;
-    v.resize(k + 1);
-    w.resize(k + 1);
-    xi.resize(k+1);
+    if(k < pow(10, 4) - 1){
+      k = xi.n_elem;
+      v.resize(k + 1);
+      w.resize(k + 1);
+      xi.resize(k+1);
 
-    xtemp = arma::randg(arma::distr_param(1.0 - sigma_PY, 1.0));
-    ytemp = arma::randg(arma::distr_param(mass + (k + 1) * sigma_PY, 1.0));
-    v[k]  = xtemp / (xtemp + ytemp);
+      xtemp = arma::randg(arma::distr_param(1.0 - sigma_PY, 1.0));
+      ytemp = arma::randg(arma::distr_param(mass + (k + 1) * sigma_PY, 1.0));
+      v[k]  = xtemp / (xtemp + ytemp);
 
-    if(k == 0){
-      w[k] = v[k];
-    }else{
-      w[k] = v[k] * ((1 - v[k-1]) * w[k - 1]) / v[k-1];
+      if(k == 0){
+        w[k] = v[k];
+      }else{
+        w[k] = v[k] * ((1 - v[k-1]) * w[k - 1]) / v[k-1];
+      }
+
+      xi[k] = xi[k - 1] * (param_seq_one + k * param_seq_two) / (param_seq_one + 1 + k * param_seq_two);
+      xi_sum += xi[k];
+
+      // xi[k] = xi[k - 1] * (mass + k * sigma_PY) / (mass + 1 + k * sigma_PY);
+      // xi_sum += xi[k];
+    } else {
+
+      bound += 1;
+      double w_temp = arma::accu(w);
+      k = xi.n_elem;
+      v.resize(k + 1);
+      w.resize(k + 1);
+      xi.resize(k+1);
+
+      v[k] = 1;
+      w[k] = 1 - w_temp;
+
+      xi[k] = 1 - xi_sum;
+      xi_sum += xi[k];
+
+      // xi[k] = xi[k - 1] * (mass + k * sigma_PY) / (mass + 1 + k * sigma_PY);
+      // xi_sum += xi[k];
     }
 
-    // xi[k] = xi[k - 1] * (param_seq_one + k * param_seq_two) / (param_seq_one + 1 + k * param_seq_two);
-    // xi_sum += xi[k];
-
-    xi[k] = xi[k - 1] * (mass + k * sigma_PY) / (mass + 1 + k * sigma_PY);
-    xi_sum += xi[k];
+    Rcpp::checkUserInterrupt();
+    // Rcpp::Rcout << "\n\n" << k << "\n\n" << sum(log(1 - u) < log(xi_sum)) << "\n\n" << u.n_elem <<
+    //   "\n\n" << sum(u <= 0) << "\n\n" << sum(u >= 1) << "\n\n"<< log(xi_sum) << "\n\n";
+    //
+    // if(k > 10000){
+    //   Rcpp::Rcout << "\n\n" << u.t() << "\n\n" << (log(1 - u)).t() << "\n\n";
+    // }
   }
 
   if(xi.n_elem > k_old){
@@ -1033,7 +1079,7 @@ void grow_param_indep_SLI_PY_mv_L(arma::mat &mu,
   int k = w.n_elem;
   int k_new;
 
-  while(sum((1 - u) < xi_sum) < n){
+  while(sum((1 - u) <= xi_sum) < n){
 
     k = w.n_elem;
     v.resize(k+1);
@@ -1441,7 +1487,7 @@ void grow_param_indep_SLI_PY_mv(arma::mat &mu,
   int k = w.n_elem;
   int k_new;
 
-  while(sum((1 - u) < xi_sum) < n){
+  while(sum((1 - u) <= xi_sum) < n){
 
     k = w.n_elem;
     v.resize(k+1);
@@ -1858,7 +1904,7 @@ void grow_param_indep_SLI_PY_mv_P(arma::mat &mu,
   int k = w.n_elem;
   int k_new;
 
-  while(sum((1 - u) < xi_sum) < n){
+  while(sum((1 - u) <= xi_sum) < n){
 
     k = w.n_elem;
     v.resize(k+1);
@@ -2292,7 +2338,7 @@ void grow_param_indep_SLI_PY_mv_MRK(arma::mat &beta,
   int k = w.n_elem;
   int k_new;
 
-  while((sum((1 - u) < xi_sum) < n)){
+  while((sum((1 - u) <= xi_sum) < n)){
 
     k = w.n_elem;
     v.resize(k+1);

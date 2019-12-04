@@ -301,13 +301,17 @@ Rcpp::List cSLI(arma::vec data,
                 bool hyper = 1,
                 bool indep = true){
 
+  // temp
+  int bound = 0;
+
   if(nupd == 0){
     nupd = int(niter / 10);
   }
 
   arma::vec xi(1);
   if(indep){
-    xi(0) = (1 - sigma_PY) / (1 + mass);
+    xi(0) = (1 - param_seq_two) / (1 + param_seq_one);
+    // xi(0) = param_seq_one;
   }
 
   int n = data.n_elem;
@@ -352,7 +356,6 @@ Rcpp::List cSLI(arma::vec data,
                       mass,
                       sigma_PY);
 
-
     if(hyper){
       hyper_accelerate_SLI(mu,
                            s2,
@@ -368,7 +371,6 @@ Rcpp::List cSLI(arma::vec data,
                            a1,
                            b1);
     }
-
     if(indep){
       // update the stick breaking weights
       update_u_SLI(clust,
@@ -390,7 +392,8 @@ Rcpp::List cSLI(arma::vec data,
                               n,
                               sigma_PY,
                               param_seq_one,
-                              param_seq_two);
+                              param_seq_two,
+                              bound);
 
       // update the allocation
       update_cluster_indep_SLI(data,
@@ -418,7 +421,8 @@ Rcpp::List cSLI(arma::vec data,
                         b0,
                         mass,
                         n,
-                        sigma_PY);
+                        sigma_PY,
+                        bound);
 
       // update the allocation
       update_cluster_SLI(data,
@@ -479,10 +483,12 @@ Rcpp::List cSLI(arma::vec data,
     resu["s2"]     = result_s2;
     resu["probs"]  = result_probs;
     resu["time"]   = double(end_s-start_s)/CLOCKS_PER_SEC;
+    resu["bound"]  = bound;
   } else {
     resu["dens"]   = result_dens;
     resu["clust"]  = result_clust;
     resu["time"]   = double(end_s-start_s)/CLOCKS_PER_SEC;
+    resu["bound"]  = bound;
   }
   return resu;
 }

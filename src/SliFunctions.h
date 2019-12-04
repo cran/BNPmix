@@ -122,7 +122,8 @@ void grow_param_SLI_PY(arma::vec &mu,
                        double b0,
                        double mass,
                        int n,
-                       double sigma_PY);
+                       double sigma_PY,
+                       int &bound);
 
 void grow_param_indep_SLI_PY(arma::vec &mu,
                              arma::vec &s2,
@@ -138,7 +139,8 @@ void grow_param_indep_SLI_PY(arma::vec &mu,
                              int n,
                              double sigma_PY,
                              double param_seq_one,
-                             double param_seq_two);
+                             double param_seq_two,
+                             int &bound);
 
 void update_cluster_SLI(arma::vec data,
                         arma::vec mu,

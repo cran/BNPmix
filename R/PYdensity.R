@@ -371,10 +371,10 @@ PYdensity <- function(y,
       # call the SLI univariate function
       if(model == "LS"){
         est_model <- cSLI(y, grid_use, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, zeta1, a1, b1,
-                          strength, strength, discount, nupd, out_param, mcmc_dens, discount, print_message, hyper, FALSE)
+                          strength, 1 - discount, strength, nupd, out_param, mcmc_dens, discount, print_message, hyper, FALSE)
       } else if(model == "L"){
         est_model <- cSLI_L(y, grid_use, niter, nburn, m0, s20, a0, b0, m1, k1, a1, b1,
-                            strength, strength, discount, nupd, out_param, mcmc_dens, discount, print_message, hyper, FALSE)
+                            strength, 1 - discount, strength, nupd, out_param, mcmc_dens, discount, print_message, hyper, FALSE)
       }
     } else if(method == "SLI" & slice_type == "INDEP"){
 
@@ -382,10 +382,10 @@ PYdensity <- function(y,
         # call the SLI univariate function
         if(model == "LS"){
           est_model <- cSLI(y, grid_use, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, zeta1, a1, b1,
-                            strength, strength, discount, nupd, out_param, mcmc_dens, discount, print_message, hyper, TRUE)
+                            strength, strength, 1 - discount, nupd, out_param, mcmc_dens, discount, print_message, hyper, TRUE)
         } else if(model == "L"){
           est_model <- cSLI_L(y, grid_use, niter, nburn, m0, s20, a0, b0, m1, k1, a1, b1,
-                              strength, strength, discount, nupd, out_param, mcmc_dens, discount, print_message, hyper, TRUE)
+                              strength, strength, 1 - discount, nupd, out_param, mcmc_dens, discount, print_message, hyper, TRUE)
         }
       }
 
@@ -422,14 +422,16 @@ PYdensity <- function(y,
                           niter = niter,
                           nburn = nburn,
                           tot_time = est_model$time,
-                          univariate = TRUE)
+                          univariate = TRUE,
+                          wvals = est_model$bound)
       }else{
         result <- BNPdens(data = y,
                           clust = est_model$clust,
                           niter = niter,
                           nburn = nburn,
                           tot_time = est_model$time,
-                          univariate = TRUE)
+                          univariate = TRUE,
+                          wvals = est_model$bound)
       }
     } else {
       if(isTRUE(mcmc_dens)){
@@ -443,7 +445,8 @@ PYdensity <- function(y,
                           niter = niter,
                           nburn = nburn,
                           tot_time = est_model$time,
-                          univariate = TRUE)
+                          univariate = TRUE,
+                          wvals = est_model$bound)
       }else{
         result <- BNPdens(data = y,
                           clust = est_model$clust,
@@ -453,7 +456,8 @@ PYdensity <- function(y,
                           niter = niter,
                           nburn = nburn,
                           tot_time = est_model$time,
-                          univariate = TRUE)
+                          univariate = TRUE,
+                          wvals = est_model$bound)
       }
     }
   } else if(!is.vector(y)){
@@ -666,13 +670,13 @@ PYdensity <- function(y,
       if(indep_sli == "DEFAULT"){
         if(model == "LS"){
           est_model <- cSLI_mv(y, grid_use, niter, nburn, m0, k0, Sigma0, n0, m1, S1, tau1, zeta1, n1, Sigma1,
-                               strength, strength, discount, nupd, out_param, mcmc_dens, discount, print_message, mean_dens, hyper, TRUE)
+                               strength, strength, 1 - discount, nupd, out_param, mcmc_dens, discount, print_message, mean_dens, hyper, TRUE)
         } else if(model == "L"){
           est_model <- cSLI_mv_L(y, grid_use, niter, nburn, m0, S20, Sigma0, n0, m1, k1, lambda1, Lambda1,
-                                 strength, strength, discount, nupd, out_param, mcmc_dens, discount, print_message, mean_dens, hyper, TRUE)
+                                 strength, strength, 1 - discount, nupd, out_param, mcmc_dens, discount, print_message, mean_dens, hyper, TRUE)
         } else if(model == "DLS"){
           est_model <- cSLI_mv_P(y, grid_use, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, zeta1, a1, b1,
-                                 strength, strength, discount, nupd, out_param, mcmc_dens, discount, print_message, mean_dens, hyper, TRUE)
+                                 strength, strength, 1 - discount, nupd, out_param, mcmc_dens, discount, print_message, mean_dens, hyper, TRUE)
         }
       }
 

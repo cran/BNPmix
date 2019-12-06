@@ -1,4 +1,4 @@
-e45a469773a7dcbdbb62c8039f7dfaa2 *DESCRIPTION
+13526eb16be0965374c55c14b40c5369 *DESCRIPTION
 6a6a8e020838b23406c81b19c1d46df6 *LICENSE
 baf5d3f08e9abe0c2e25bc615069bbf3 *NAMESPACE
 b4fe12876c37f8a22cde06e9701eecf0 *R/BNPmix-package.R
@@ -66,9 +66,9 @@ aee8b8f35ba4b3878c1ee255e0827e9e *src/Makevars
 1b805fa72cc9a8826c389833df1c277c *src/MarFunctions.cpp
 96fa38524d589135c7a579ccc0c0de63 *src/MarFunctions.h
 885f051895d3561a2228326b0c237083 *src/RcppExports.cpp
-f6d43a401979b2a2316cc2b754c539c2 *src/SliFunctions.cpp
+e1272cffd1424a01ad857546b1287593 *src/SliFunctions.cpp
 79b577e587a3bc7334607105549c0246 *src/SliFunctions.h
 4887d408ce7a9c835271a6297bb5650d *src/cDDP.cpp
 6030eba6eac1a903dbe4bf89f7513936 *src/cICS.cpp
-0b1b2f0a26b6c02b467dcad9c40c9a45 *src/cSLI.cpp
+5750adee34d9b3620cccb612a522097c *src/cSLI.cpp
 e373ae4658394930732293c152ae9a2e *src/est_partition.cpp

@@ -310,8 +310,8 @@ Rcpp::List cSLI(arma::vec data,
 
   arma::vec xi(1);
   if(indep){
-    xi(0) = (1 - param_seq_two) / (1 + param_seq_one);
-    // xi(0) = param_seq_one;
+    // xi(0) = (1 - param_seq_two) / (1 + param_seq_one);
+    xi(0) = (1 - sigma_PY) / (1 + mass);
   }
 
   int n = data.n_elem;

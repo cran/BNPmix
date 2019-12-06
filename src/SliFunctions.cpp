@@ -580,7 +580,7 @@ void grow_param_SLI_PY(arma::vec &mu,
 
   while(sum((1 - u) < w_sum) < n){
 
-    if(k < pow(10, 4) - 1){
+    if(k < pow(10.0, 5.0) - 1){
       k = w.n_elem;
       v.resize(k + 1);
       w.resize(k + 1);
@@ -671,7 +671,7 @@ void grow_param_indep_SLI_PY(arma::vec &mu,
 
   while(sum((1 - u) <= xi_sum) < n){
 
-    if(k < pow(10, 4) - 1){
+    if(k < pow(10.0, 5.0) - 1){
       k = xi.n_elem;
       v.resize(k + 1);
       w.resize(k + 1);
@@ -687,11 +687,11 @@ void grow_param_indep_SLI_PY(arma::vec &mu,
         w[k] = v[k] * ((1 - v[k-1]) * w[k - 1]) / v[k-1];
       }
 
-      xi[k] = xi[k - 1] * (param_seq_one + k * param_seq_two) / (param_seq_one + 1 + k * param_seq_two);
-      xi_sum += xi[k];
-
-      // xi[k] = xi[k - 1] * (mass + k * sigma_PY) / (mass + 1 + k * sigma_PY);
+      // xi[k] = xi[k - 1] * (param_seq_one + k * param_seq_two) / (param_seq_one + 1 + k * param_seq_two);
       // xi_sum += xi[k];
+
+      xi[k] = xi[k - 1] * (mass + k * sigma_PY) / (mass + 1 + k * sigma_PY);
+      xi_sum += xi[k];
     } else {
 
       bound += 1;

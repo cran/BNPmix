@@ -9,7 +9,7 @@ PYregression(y, x, mcmc = list(), prior = list(), output = list())
 \arguments{
 \item{y}{a vector of observations, univariate dependent variable;}
 
-\item{x}{a vector of observations, univariate independent variable;}
+\item{x}{a matrix of observations, multivariate independent variable;}
 
 \item{mcmc}{a list of MCMC arguments:
 \itemize{
@@ -18,6 +18,8 @@ PYregression(y, x, mcmc = list(), prior = list(), output = list())
   \item \code{nburn} (mandatory), number of iterations to discard as burn-in.
 
   \item \code{method}, the MCMC sampling method to be used. Options are \code{'ICS'}, \code{'MAR'} and \code{'SLI'} (default is \code{'ICS'}). See details.
+
+  \item \code{model} the type of model to be fitted (default is 'LS'). See details.
 
   \item \code{nupd}, argument controlling the number of iterations to be displayed on screen: the function reports
   on standard output every time \code{nupd} new iterations have been carried out (default is \code{niter/10}).
@@ -39,16 +41,18 @@ PYregression(y, x, mcmc = list(), prior = list(), output = list())
 \code{strength} and \code{discount}, the strength and discount parameters of the Pitman-Yor process
 (default are \code{strength = 1} and \code{discount = 0}, the latter leading to the Dirichlet process).
 The remaining parameters specify the base measure: \code{m0} and \code{S0} are
- the mean and covariance of normal base measure on the regression coefficients (default are a vector of zeroes and the identity matrix);
+ the mean and covariance of normal base measure on the regression coefficients (default are a vector of zeroes, except for the first element equal
+ to \code{mean(y)}, and a diagonal matrix with each element equal to 100, except for the first element equal to var(y));
  \code{a0} and \code{b0} are the shape and scale parameters of the inverse gamma base measure on the scale component
- (default are 2 and 1).
+ (default are 2 and var(y)).
  If \code{hyper = TRUE},  optional hyperpriors on the base measure's parameters are added:
  specifically, \code{m1} and \code{k1} are the  mean parameter and scale factor defining the
- normal hyperprior on \code{m0} (default are a vector of zeroes and 1);
+ normal hyperprior on \code{m0} (default are a vector of zeroes, except for the first element equal
+ to the sample mean of the dependent observed variable, and 1);
  \code{tau1} and \code{zeta1} are the shape and rate parameters of the gamma hyperprior on
  \code{b0} (default is 1 for both);
  \code{n1} and \code{S1} are the parameters (degrees of freedom and scale) of the Wishart prior for \code{S0}
- (default 4 and identity matrix);  See details.}
+ (default 4 and a diagonal matrix with each element equal to 100);  See details.}
 
 \item{output}{list of posterior summaries:
 
@@ -56,7 +60,7 @@ The remaining parameters specify the base measure: \code{m0} and \code{S0} are
 \item \code{grid_y}, a vector of points where to evaluate the estimated posterior mean density of
 \code{y}, conditionally on each value of \code{x} in \code{grid_x};
 
-\item \code{grid_x}, a vector of points where to evaluate the realization of the posterior conditional densities of
+\item \code{grid_x}, a matrix of points where to evaluate the realization of the posterior conditional densities of
 \code{y} given \code{x};
 \item \code{out_type}, if \code{out_type = "FULL"}, the function returns the estimated partitions and the realizations of the posterior density for each iteration;
 If \code{out_type = "MEAN"}, return the estimated partitions and the mean of the densities sampled at each iteration;
@@ -88,7 +92,10 @@ This function fits a Pitman-Yor process mixture of Gaussian linear regression mo
       where \eqn{x} is a bivariate vector containing the dependent variable in \code{x} and a value of 1
        for the intercept term.
 The mixing measure \eqn{\tilde p} has a Pitman-Yor process prior with strength \eqn{\vartheta},
-discount parameter \eqn{\alpha} and base measures \eqn{P_0} specified as
+discount parameter \eqn{\alpha}. The location model assume a base measures \eqn{P_0} specified as
+\deqn{P_0(d \beta) = N(d \beta; m_0, S_0) .}{%
+      P0(d \beta) = N(d \beta; m0, S0).}
+ while the location-scale model assume a base measures \eqn{P_0} specified as
 \deqn{P_0(d \beta, d \sigma^2) = N(d \beta; m_0, S_0) \times IGa(d \sigma^2; a_0, b_0).}{%
       P0(d \beta, d \sigma^2) = N(d \beta; m0, S0)  IG(d \sigma^2; a0, b0).}
  Optional hyperpriors complete the model specification:

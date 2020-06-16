@@ -4,7 +4,9 @@
 \name{CPP}
 \alias{CPP}
 \title{Collaborative Perinatal Project data}
-\format{A data.frame}
+\format{
+A data.frame
+}
 \usage{
 data(CPP)
 }

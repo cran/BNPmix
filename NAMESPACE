@@ -5,6 +5,8 @@ importFrom(methods, new)
 importFrom(ggplot2, ggplot, theme, theme_bw, element_blank, aes, geom_line,stat_contour, facet_wrap, guides, geom_point, geom_histogram)
 importFrom(stats, as.dist, cutree, hclust, rWishart, rgamma, rnorm, aggregate, quantile, uniroot, approx)
 importFrom(coda, as.mcmc)
+importFrom(ggpubr, ggarrange)
+importFrom(stats, var)
 
 # exportPattern("^[[:alpha:]]+")
 export(BNPmix_BIN)

@@ -42,66 +42,69 @@ The remaining parameters depend on the model choice.
 \item If \code{model = 'L'} (location mixture) and \code{y} is univariate:
 
 \code{m0} and \code{s20} are
- mean and variance of the base measure on the location parameter (default are 0 and 1);
+ mean and variance of the base measure on the location parameter (default are sample mean and sample variance of the data);
  \code{a0} and \code{b0} are shape and scale parameters of the inverse gamma prior on the common scale parameter
- (default are 2 and 1).
+ (default are 2 and the sample variance of the data).
  If \code{hyper = TRUE},  optional hyperpriors on the base measure's parameters are added:
  specifically, \code{m1} and \code{k1} are the mean parameter and the scale factor defining the
- normal hyperprior on \code{m0} (default are 0 and 1), and
+ normal hyperprior on \code{m0} (default are the sample mean of the data and 1), and
  \code{a1} and \code{b1} are shape and rate parameters of the inverse gamma hyperprior on \code{b0}
- (default are 1 and 2). See details.
+ (default are 2 and the sample variance of the data). See details.
 
 \item If \code{model = 'LS'} (location-scale mixture) and \code{y} is univariate:
 
   \code{m0} and \code{k0} are the mean parameter and the scale factor defining the normal base measure
-  on the location parameter (default are 0 and 1), and \code{a0} and \code{b0} are
-  shape and scale parameters of the inverse gamma base measure on the scale parameter (default are 2 and 1).
+  on the location parameter (default are the sample mean of the data and 1), and \code{a0} and \code{b0} are
+  shape and scale parameters of the inverse gamma base measure on the scale parameter (default are 2 and the sample variance of the data).
  If \code{hyper = TRUE},  optional hyperpriors on the base measure's parameters are added:
  specifically, \code{m1} and \code{s21} are mean and variance parameters of the normal hyperprior on
- \code{m0} (default are 0 and 1);
+ \code{m0} (default are the sample mean and the sample variance of the data);
  \code{tau1} and \code{zeta1} are shape and rate parameters of the gamma hyperprior on
  \code{k0} (default is 1 for both);
  \code{a1} and \code{b1} are shape and rate parameters of the gamma hyperprior on
- \code{b0}  (default is 1 for both). See details.
+ \code{b0}  (default are the sample variance of the data and 1). See details.
 
 \item If \code{model = 'L'} (location mixture) and \code{y} is multivariate (\code{p}-variate):
 
 \code{m0} and \code{S20} are
- mean and covariance of the base measure on the location parameter (default are a vector of zeroes and the identity matrix);
+ mean and covariance of the base measure on the location parameter (default are the sample mean and the sample covariance of the data);
  \code{Sigma0} and \code{n0} are the parameters of the inverse Whishart prior on
-  the common scale matrix.
+  the common scale matrix (default are the sample covariance of the data and \code{p}+2).
  If \code{hyper = TRUE}, optional hyperpriors on the base measure's parameters are added:
  specifically, \code{m1} and \code{k1} are the mean parameter and the scale factor defining the
- normal hyperprior on \code{m0} (default are a vector of zeroes and 1), and
- \code{lambda} and \code{Lambda1} are the parameters (degrees of freedom and scale) of the inverse Wishart prior on \code{S20} (default are \code{p}+2 and the identity matrix). See details.
+ normal hyperprior on \code{m0} (default are the sample mean of the data and 1), and
+ \code{lambda} and \code{Lambda1} are the parameters (degrees of freedom and scale) of the inverse Wishart prior on \code{S20}
+ (default are \code{p}+2 and the sample covariance of the data). See details.
 
 \item If \code{model = 'LS'} (location-scale mixture) and \code{y} is multivariate (\code{p}-variate):
 
 \code{m0} and \code{k0} are the mean parameter and the scale factor defining the normal base measure on the
-location parameter (default are a vector of zeros and 1), and
+location parameter (default are the sample mean of the data and 1), and
 \code{n0} and \code{Sigma0} are the parameters (degrees of freedom and scale) of the inverse Wishart base measure on the location parameter
-(default are \code{p}+2 and the identity matrix).
+(default are \code{p}+2 and the sample covariance of the data).
  If \code{hyper = TRUE}, optional hyperpriors on the base measure's parameters are added:
  specifically, \code{m1} and \code{S1} are mean and covariance matrix parameters of the normal hyperprior on
- \code{m0} (default are a vector of zeroes and the identity matrix);
+ \code{m0} (default are the sample mean and the sample covariance of the data);
  \code{tau1} and \code{zeta1} are shape and rate parameters of the gamma hyperprior on
  \code{k0} (default is 1 for both);
- \code{n1} and \code{Sigma1} are the parameters (degrees of freedom and scale) of the Wishart prior for \code{Sigma0} (default are \code{p}+2 and the identity matrix divided \code{p}+2). See details.
+ \code{n1} and \code{Sigma1} are the parameters (degrees of freedom and scale) of the Wishart prior for \code{Sigma0}
+ (default are \code{p}+2 and the sample covariance of the data divided \code{p}+2). See details.
 
 
 \item If \code{model = 'DLS'} (diagonal location-scale mixture):
 
 \code{m0} and \code{k0} are the mean vector parameter and the vector of scale factors defining the normal base measure
-on the location parameter (default are a vector of zeroes and a vector of ones),
+on the location parameter (default are the sample mean and a vector of ones),
 and \code{a0} and \code{b0} are vectors of
-shape and scale parameters defining the base measure on the scale parameters (default are a vector of twos and a vector of ones).
+shape and scale parameters defining the base measure on the scale parameters (default are a vector of twos and the diagonal
+of the sample covariance of the data).
 If \code{hyper = TRUE}, optional hyperpriors on the base measure's parameters are added:
  specifically, \code{m1} and \code{s21} are vectors of mean and variance parameters for the normal hyperpriors on the components of
- \code{m0} (default are a vector of zeros and a vector of ones);
+ \code{m0} (default are the sample mean and the diagonal of the sample covariance of the data);
  \code{tau1} and \code{zeta1} are vectors of shape and rate parameters of the gamma hyperpriors on the components of
  \code{k0} (default is a vector of ones for both);
  \code{a1} and \code{b1} are vectors of shape and rate parameters of the gamma hyperpriors on the components of
- \code{b0}  (default is a vector of ones for both). See details.
+ \code{b0}  (default is the diagonal of the sample covariance of the data and a vector of ones). See details.
 }}
 
 \item{output}{a list of arguments for generating posterior output. It contains:

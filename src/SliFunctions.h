@@ -471,4 +471,78 @@ void update_cluster_indep_SLI_mv_MRK(arma::vec y,
                                      arma::vec xi,
                                      arma::vec u);
 
+/*----------------------------------------------------------------------
+ *
+ * MIXTURE OF REGRESSION KERNELS
+ * LOCATION-SCALE KERNEL
+ * SLI functions
+ *
+ *----------------------------------------------------------------------
+ */
+
+void accelerate_SLI_mv_MRK_L(arma::vec y,
+                             arma::mat covs,
+                             arma::mat &beta,
+                             double &sigma2,
+                             arma::vec &v,
+                             arma::vec &w,
+                             arma::vec clust,
+                             arma::vec beta0,
+                             arma::mat Sb0,
+                             double a0,
+                             double b0,
+                             double mass,
+                             double sigma_PY);
+
+void hyper_accelerate_SLI_mv_MRK_L(arma::vec y,
+                                   arma::mat covs,
+                                   arma::vec clust,
+                                   arma::mat beta,
+                                   arma::vec &beta0,
+                                   arma::mat &Sb0,
+                                   arma::vec beta1,
+                                   double k1,
+                                   double sb1,
+                                   arma::mat Sb1);
+
+void grow_param_SLI_PY_mv_MRK_L(arma::mat &beta,
+                                arma::vec &v,
+                                arma::vec &w,
+                                arma::vec u,
+                                arma::vec beta0,
+                                arma::mat Sb0,
+                                double mass,
+                                int n,
+                                double sigma_PY);
+
+void grow_param_indep_SLI_PY_mv_MRK_L(arma::mat &beta,
+                                      arma::vec &v,
+                                      arma::vec &w,
+                                      arma::vec &xi,
+                                      arma::vec u,
+                                      arma::vec beta0,
+                                      arma::mat Sb0,
+                                      double mass,
+                                      int n,
+                                      double sigma_PY,
+                                      double param_seq_one,
+                                      double param_seq_two);
+
+void update_cluster_SLI_mv_MRK_L(arma::vec y,
+                                 arma::mat covs,
+                                 arma::mat beta,
+                                 double sigma2,
+                                 arma::vec &clust,
+                                 arma::vec w,
+                                 arma::vec u);
+
+void update_cluster_indep_SLI_mv_MRK_L(arma::vec y,
+                                       arma::mat covs,
+                                       arma::mat beta,
+                                       double sigma2,
+                                       arma::vec &clust,
+                                       arma::vec w,
+                                       arma::vec xi,
+                                       arma::vec u);
+
 #endif

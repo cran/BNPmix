@@ -4,12 +4,27 @@
 \alias{BNPdens}
 \title{BNPdens class constructor}
 \usage{
-BNPdens(density = NULL, data = NULL, grideval = NULL,
-  grid_x = NULL, grid_y = NULL, clust = NULL, mean = NULL,
-  beta = NULL, sigma2 = NULL, probs = NULL, niter = NULL,
-  nburn = NULL, tot_time = NULL, univariate = TRUE,
-  regression = FALSE, dep = FALSE, group_log = NULL, group = NULL,
-  wvals = NULL)
+BNPdens(
+  density = NULL,
+  data = NULL,
+  grideval = NULL,
+  grid_x = NULL,
+  grid_y = NULL,
+  clust = NULL,
+  mean = NULL,
+  beta = NULL,
+  sigma2 = NULL,
+  probs = NULL,
+  niter = NULL,
+  nburn = NULL,
+  tot_time = NULL,
+  univariate = TRUE,
+  regression = FALSE,
+  dep = FALSE,
+  group_log = NULL,
+  group = NULL,
+  wvals = NULL
+)
 }
 \arguments{
 \item{density}{a matrix containing the values taken by the density at the grid points;}

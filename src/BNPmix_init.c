@@ -5,8 +5,11 @@
 
 /* .Call calls */
 extern SEXP _BNPmix_cICS_mv_MKR(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _BNPmix_cICS_mv_MKR_L(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _BNPmix_cSLI_mv_MKR(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _BNPmix_cSLI_mv_MKR_L(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _BNPmix_MAR_mv_MKR(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _BNPmix_MAR_mv_MKR_L(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 extern SEXP _BNPmix_cDDP(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
@@ -35,9 +38,12 @@ extern SEXP _BNPmix_BNPmix_BIN(SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
     // REG
-    {"_BNPmix_cICS_mv_MKR",     (DL_FUNC) &_BNPmix_cICS_mv_MKR,     25},
-    {"_BNPmix_cSLI_mv_MKR",     (DL_FUNC) &_BNPmix_cSLI_mv_MKR,     27},
-    {"_BNPmix_MAR_mv_MKR",      (DL_FUNC) &_BNPmix_MAR_mv_MKR,      25},
+    {"_BNPmix_cICS_mv_MKR",     (DL_FUNC) &_BNPmix_cICS_mv_MKR,         25},
+    {"_BNPmix_cICS_mv_MKR_L",     (DL_FUNC) &_BNPmix_cICS_mv_MKR_L,     23},
+    {"_BNPmix_cSLI_mv_MKR",     (DL_FUNC) &_BNPmix_cSLI_mv_MKR,         27},
+    {"_BNPmix_cSLI_mv_MKR_L",     (DL_FUNC) &_BNPmix_cSLI_mv_MKR_L,     25},
+    {"_BNPmix_MAR_mv_MKR",      (DL_FUNC) &_BNPmix_MAR_mv_MKR,          25},
+    {"_BNPmix_MAR_mv_MKR_L",      (DL_FUNC) &_BNPmix_MAR_mv_MKR_L,      23},
     // DDP
     {"_BNPmix_cDDP",      (DL_FUNC) &_BNPmix_cDDP,      18},
     // ICS

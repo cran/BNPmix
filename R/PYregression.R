@@ -8,7 +8,7 @@
 #' introduced in De Iorio et al. (2004). See details below for model specification.
 #'
 #'@param y a vector of observations, univariate dependent variable;
-#'@param x a vector of observations, univariate independent variable;
+#'@param x a matrix of observations, multivariate independent variable;
 
 #'@param output list of posterior summaries:
 #'
@@ -17,7 +17,7 @@
 #'\item \code{grid_y}, a vector of points where to evaluate the estimated posterior mean density of
 #'\code{y}, conditionally on each value of \code{x} in \code{grid_x};
 #'
-#'\item \code{grid_x}, a vector of points where to evaluate the realization of the posterior conditional densities of
+#'\item \code{grid_x}, a matrix of points where to evaluate the realization of the posterior conditional densities of
 #'\code{y} given \code{x};
 #' \item \code{out_type}, if \code{out_type = "FULL"}, the function returns the estimated partitions and the realizations of the posterior density for each iteration;
 #' If \code{out_type = "MEAN"}, return the estimated partitions and the mean of the densities sampled at each iteration;
@@ -34,6 +34,8 @@
 #'   \item \code{nburn} (mandatory), number of iterations to discard as burn-in.
 #'
 #'   \item \code{method}, the MCMC sampling method to be used. Options are \code{'ICS'}, \code{'MAR'} and \code{'SLI'} (default is \code{'ICS'}). See details.
+#'
+#'   \item \code{model} the type of model to be fitted (default is 'LS'). See details.
 #'
 #'   \item \code{nupd}, argument controlling the number of iterations to be displayed on screen: the function reports
 #'   on standard output every time \code{nupd} new iterations have been carried out (default is \code{niter/10}).
@@ -55,16 +57,18 @@
 #' \code{strength} and \code{discount}, the strength and discount parameters of the Pitman-Yor process
 #' (default are \code{strength = 1} and \code{discount = 0}, the latter leading to the Dirichlet process).
 #' The remaining parameters specify the base measure: \code{m0} and \code{S0} are
-#'  the mean and covariance of normal base measure on the regression coefficients (default are a vector of zeroes and the identity matrix);
+#'  the mean and covariance of normal base measure on the regression coefficients (default are a vector of zeroes, except for the first element equal
+#'  to \code{mean(y)}, and a diagonal matrix with each element equal to 100, except for the first element equal to var(y));
 #'  \code{a0} and \code{b0} are the shape and scale parameters of the inverse gamma base measure on the scale component
-#'  (default are 2 and 1).
+#'  (default are 2 and var(y)).
 #'  If \code{hyper = TRUE},  optional hyperpriors on the base measure's parameters are added:
 #'  specifically, \code{m1} and \code{k1} are the  mean parameter and scale factor defining the
-#'  normal hyperprior on \code{m0} (default are a vector of zeroes and 1);
+#'  normal hyperprior on \code{m0} (default are a vector of zeroes, except for the first element equal
+#'  to the sample mean of the dependent observed variable, and 1);
 #'  \code{tau1} and \code{zeta1} are the shape and rate parameters of the gamma hyperprior on
 #'  \code{b0} (default is 1 for both);
 #'  \code{n1} and \code{S1} are the parameters (degrees of freedom and scale) of the Wishart prior for \code{S0}
-#'  (default 4 and identity matrix);  See details.
+#'  (default 4 and a diagonal matrix with each element equal to 100);  See details.
 #'
 #' @details
 #' This function fits a Pitman-Yor process mixture of Gaussian linear regression models, i.e
@@ -73,7 +77,10 @@
 #'       where \eqn{x} is a bivariate vector containing the dependent variable in \code{x} and a value of 1
 #'        for the intercept term.
 #' The mixing measure \eqn{\tilde p} has a Pitman-Yor process prior with strength \eqn{\vartheta},
-#' discount parameter \eqn{\alpha} and base measures \eqn{P_0} specified as
+#' discount parameter \eqn{\alpha}. The location model assume a base measures \eqn{P_0} specified as
+#' \deqn{P_0(d \beta) = N(d \beta; m_0, S_0) .}{%
+#'       P0(d \beta) = N(d \beta; m0, S0).}
+#'  while the location-scale model assume a base measures \eqn{P_0} specified as
 #' \deqn{P_0(d \beta, d \sigma^2) = N(d \beta; m_0, S_0) \times IGa(d \sigma^2; a_0, b_0).}{%
 #'       P0(d \beta, d \sigma^2) = N(d \beta; m0, S0)  IG(d \sigma^2; a0, b0).}
 #'  Optional hyperpriors complete the model specification:
@@ -138,7 +145,7 @@ PYregression <- function(y, x,
                           output = list()){
 
   if(!is.vector(y)) stop("Wrong dimensions: y need to be a vector")
-  if(!is.vector(x)) stop("Wrong dimensions: x need to be a vector")
+  if(!(is.matrix(x) | is.vector(x))) stop("Wrong dimensions: x need to be a vector or a matrix")
 
   if(!is.list(mcmc)) stop("mcmc must be a list")
   if(!is.list(prior)) stop("prior must be a list")
@@ -170,13 +177,18 @@ PYregression <- function(y, x,
   if(is.null(mcmc$nburn)) mcmc$nburn = 0
 
   # add variable for the intercept
-  x <- as.matrix(cbind(rep(1, length(x)), x))
+  if(length(dim(x)) <= 1){
+    x <- as.matrix(cbind(rep(1, length(x)), x))
+  } else {
+    x <- as.matrix(cbind(rep(1, nrow(x)), x))
+  }
   d <- ncol(x)
 
   # if mcmc misses some parts, add default
   niter = mcmc$niter
   nburn = mcmc$nburn
   method = ifelse(is.null(mcmc$method), "ICS", mcmc$method)
+  model = ifelse(is.null(mcmc$model), "LS", mcmc$model)
   nupd = ifelse(is.null(mcmc$nupd), round(niter / 10), mcmc$nupd)
   print_message = ifelse(is.null(mcmc$print_message), TRUE, mcmc$print_message)
   m_imp = ifelse(is.null(mcmc$m_imp), 10, mcmc$m_imp)
@@ -188,28 +200,56 @@ PYregression <- function(y, x,
   if(output$out == "FULL"){
     mean_dens = FALSE
     mcmc_dens = TRUE
-    if(is.null(output$grid_y)){
+    if(is.null(output$grid_y) & is.null(output$grid_x)){
       grid_y = seq(from = min(y) - 0.1 * diff(range(y)), to = max(y) + 0.1 * diff(range(y)), length.out = 30)
-      grid_x = cbind(rep(1,4), seq(from = min(x) - 0.1 * diff(range(x)), to = max(x) + 0.1 * diff(range(x)), length.out = 4))
+      grid_x = as.matrix(cbind(rep(1,4), apply(x, 2, function(z) seq(from = min(z) - 0.1 * diff(range(z)), to = max(z) + 0.1 * diff(range(z)), length.out = 4))[,-1]))
+    } else if(is.null(output$grid_y) & !is.null(output$grid_x)){
+      grid_y = seq(from = min(y) - 0.1 * diff(range(y)), to = max(y) + 0.1 * diff(range(y)), length.out = 30)
+      if(ncol(x) == 2){
+        grid_x = as.matrix(cbind(rep(1, length(output$grid_x)), output$grid_x))
+      } else{
+        grid_x = as.matrix(cbind(rep(1, nrow(output$grid_x)), output$grid_x))
+      }
+    } else if(!is.null(output$grid_y) & is.null(output$grid_x)){
+      grid_y = output$grid_y
+      grid_x = as.matrix(cbind(rep(1,4), apply(x, 2, function(z) seq(from = min(z) - 0.1 * diff(range(z)), to = max(z) + 0.1 * diff(range(z)), length.out = 4))[,-1]))
     } else {
-      grid_x <- cbind(rep(1, length(output$grid_x)), output$grid_x)
+      if(ncol(x) == 2){
+        grid_x = as.matrix(cbind(rep(1, length(output$grid_x)), output$grid_x))
+      } else{
+        grid_x = as.matrix(cbind(rep(1, nrow(output$grid_x)), output$grid_x))
+      }
       grid_y = output$grid_y
     }
   } else if (output$out == "MEAN"){
     mean_dens = TRUE
     mcmc_dens = TRUE
-    if(is.null(output$grid_y)){
+    if(is.null(output$grid_y) & is.null(output$grid_x)){
       grid_y = seq(from = min(y) - 0.1 * diff(range(y)), to = max(y) + 0.1 * diff(range(y)), length.out = 30)
-      grid_x = cbind(rep(1,4), seq(from = min(x) - 0.1 * diff(range(x)), to = max(x) + 0.1 * diff(range(x)), length.out = 4))
+      grid_x = as.matrix(cbind(rep(1,4), apply(x, 2, function(z) seq(from = min(z) - 0.1 * diff(range(z)), to = max(z) + 0.1 * diff(range(z)), length.out = 4))[,-1]))
+    } else if(is.null(output$grid_y) & !is.null(output$grid_x)){
+      grid_y = seq(from = min(y) - 0.1 * diff(range(y)), to = max(y) + 0.1 * diff(range(y)), length.out = 30)
+      if(ncol(x) == 2){
+        grid_x = as.matrix(cbind(rep(1, length(output$grid_x)), output$grid_x))
+      } else{
+        grid_x = as.matrix(cbind(rep(1, nrow(output$grid_x)), output$grid_x))
+      }
+    } else if(!is.null(output$grid_y) & is.null(output$grid_x)){
+      grid_y = output$grid_y
+      grid_x = as.matrix(cbind(rep(1,4), apply(x, 2, function(z) seq(from = min(z) - 0.1 * diff(range(z)), to = max(z) + 0.1 * diff(range(z)), length.out = 4))[,-1]))
     } else {
-      grid_x <- cbind(rep(1, length(output$grid_x)), output$grid_x)
+      if(ncol(x) == 2){
+        grid_x = as.matrix(cbind(rep(1, length(output$grid_x)), output$grid_x))
+      } else{
+        grid_x = as.matrix(cbind(rep(1, nrow(output$grid_x)), output$grid_x))
+      }
       grid_y = output$grid_y
     }
   } else if (output$out == "CLUST"){
     mean_dens = FALSE
     mcmc_dens = FALSE
-    grid_y = seq(from = min(y) - 0.1 * diff(range(y)), to = max(y) + 0.1 * diff(range(y)), length.out = 2)
-    grid_x = cbind(rep(1,2), seq(from = min(x) - 0.1 * diff(range(x)), to = max(x) + 0.1 * diff(range(x)), length.out = 2))
+    grid_y = seq(from = min(y) - 0.1 * diff(range(y)), to = max(y) + 0.1 * diff(range(y)), length.out = 30)
+    grid_x = as.matrix(cbind(rep(1,4), apply(x, 2, function(z) seq(from = min(z) - 0.1 * diff(range(z)), to = max(z) + 0.1 * diff(range(z)), length.out = 4))[,-1]))
   }
 
   # mcmc_dens = ifelse(is.null(output$mcmc_dens), TRUE, output$mcmc_dens)
@@ -227,6 +267,7 @@ PYregression <- function(y, x,
   if(is.null(slice_type)){ slice_type <- "DEP"}
   if(!(slice_type == "DEP" | slice_type == "INDEP")) stop("Wrong mcmc$slice_type setting")
   if(!(method == "ICS" | method == "SLI" | method == "MAR")) stop("Wrong method setting")
+  if(!(model == "LS" | model == "L")) stop("Wrong model setting")
   hyper = ifelse(is.null(mcmc$hyper), TRUE, mcmc$hyper)
 
   if(is.null(mcmc$wei_slice)){
@@ -239,21 +280,21 @@ PYregression <- function(y, x,
   # if null, initialize default parameters
   if(hyper){
     if(is.null(prior$a0)){ a0 = 2 } else { a0 = prior$a0 }
-    if(is.null(prior$m1)){ m1 = rep(0, d) } else { m1 = prior$m1 }
+    if(is.null(prior$m1)){ m1 = c(mean(y), rep(0, d - 1)) } else { m1 = prior$m1 }
     if(is.null(prior$k1)){ k1 = 1 } else { k1 = prior$k1 }
     if(is.null(prior$tau1)){ tau1 = 1 } else { tau1 = prior$tau1 }
     if(is.null(prior$zeta1)){ zeta1 = 1 } else { zeta1 = prior$zeta1 }
     if(is.null(prior$n1)){ n1 = d + 2 } else { n1 = prior$n1 }
-    if(is.null(prior$S1)){ S1 = diag(1, d) } else { S1 = prior$S1 }
+    if(is.null(prior$S1)){ S1 = diag(c(var(y), rep(100, d - 1))) } else { S1 = prior$S1 }
 
     if(is.null(prior$S0)){ S0 = solve(rWishart(n = 1, Sigma = solve(S1), df = n1)[,,1]) } else { S0 = prior$S0 }
     if(is.null(prior$m0)){ m0 = as.vector(rnorm(d) %*% (t(chol(S0)) / k1) + m1) } else { m0 = prior$m0 }
     if(is.null(prior$b0)){ b0 = rgamma(1, tau1, zeta1) } else { b0 = prior$b0 }
   } else {
-    if(is.null(prior$m0)){ m0 = rep(0, d) } else { m0 = prior$m0 }
-    if(is.null(prior$S0)){ S0 = diag(1, d) } else { S0 = prior$S0 }
+    if(is.null(prior$m0)){ m0 = c(mean(y), rep(0, d - 1))  } else { m0 = prior$m0 }
+    if(is.null(prior$S0)){ S0 = diag(c(var(y), rep(100, d - 1))) } else { S0 = prior$S0 }
     if(is.null(prior$a0)){ a0 = 2 } else { a0 = prior$a0 }
-    if(is.null(prior$b0)){ b0 = 1 } else { b0 = prior$b0 }
+    if(is.null(prior$b0)){ b0 = var(y) } else { b0 = prior$b0 }
 
     m1 <- rep(0, d)
     k1 <- n1 <- 1
@@ -265,46 +306,68 @@ PYregression <- function(y, x,
   strength = ifelse(is.null(prior$strength), 1, prior$strength)
   discount = ifelse(is.null(prior$discount), 0, prior$discount)
   if(strength < - discount) stop("strength must be greater than -discount")
+  if(is.null(mcmc$wei_slice)){
+    mcmc$wei_slice <- c(strength, discount)
+  }
 
   # estimate the model
   if(method == "ICS"){
-
-    est_model <- cICS_mv_MKR(y, x, grid_y, grid_x, niter, nburn, m0, S0, a0, b0,
-                             m1, k1, n1, S1, tau1, zeta1, strength, m_imp, nupd, out_param,
-                             mcmc_dens, discount, print_message, mean_dens, hyper)
-
+    if(model == "LS"){
+      est_model <- cICS_mv_MKR(y, x, grid_y, grid_x, niter, nburn, m0, S0, a0, b0,
+                               m1, k1, n1, S1, tau1, zeta1, strength, m_imp, nupd, out_param,
+                               mcmc_dens, discount, print_message, mean_dens, hyper)
+    } else if(model == "L"){
+      est_model <- cICS_mv_MKR_L(y, x, grid_y, grid_x, niter, nburn, m0, S0, a0, b0,
+                                 m1, k1, n1, S1, strength, m_imp, nupd, out_param,
+                                 mcmc_dens, discount, print_message, mean_dens, hyper)
+    }
   } else if(method == "SLI" & slice_type == "INDEP"){
-
-    est_model <- cSLI_mv_MKR(y, x, grid_y, grid_x, niter, nburn, m0, S0, a0, b0,
-                            m1, k1, n1, S1, tau1, zeta1, strength, nupd, out_param,
-                            mcmc_dens, discount, print_message, mean_dens, hyper, TRUE)
-
+    if(model == "LS"){
+      est_model <- cSLI_mv_MKR(y, x, grid_y, grid_x, niter, nburn, m0, S0, a0, b0,
+                               m1, k1, n1, S1, tau1, zeta1, strength, mcmc$wei_slice[1], mcmc$wei_slice[2], nupd, out_param,
+                               mcmc_dens, discount, print_message, mean_dens, hyper, TRUE)
+    } else if(model == "L"){
+      est_model <- cSLI_mv_MKR_L(y, x, grid_y, grid_x, niter, nburn, m0, S0, a0, b0,
+                                 m1, k1, n1, S1, strength, mcmc$wei_slice[1], mcmc$wei_slice[2], nupd, out_param,
+                                 mcmc_dens, discount, print_message, mean_dens, hyper, TRUE)
+    }
   } else if(method == "SLI" & slice_type == "DEP"){
-
-    if(indep_sli == "DEFAULT"){
+    if(model == "LS"){
       est_model <- cSLI_mv_MKR(y, x, grid_y, grid_x, niter, nburn, m0, S0, a0, b0,
-                               m1, k1, n1, S1, tau1, zeta1, strength, strength, discount, nupd, out_param,
+                               m1, k1, n1, S1, tau1, zeta1, strength, mcmc$wei_slice[1], mcmc$wei_slice[2], nupd, out_param,
                                mcmc_dens, discount, print_message, mean_dens, hyper, FALSE)
+    } else if(model == "L"){
+      est_model <- cSLI_mv_MKR_L(y, x, grid_y, grid_x, niter, nburn, m0, S0, a0, b0,
+                                 m1, k1, n1, S1, strength, mcmc$wei_slice[1], mcmc$wei_slice[2], nupd, out_param,
+                                 mcmc_dens, discount, print_message, mean_dens, hyper, FALSE)
     }
-    if(indep_sli == "CUSTOM"){
+  } else if(indep_sli == "CUSTOM"){
+    if(model == "LS"){
       est_model <- cSLI_mv_MKR(y, x, grid_y, grid_x, niter, nburn, m0, S0, a0, b0,
-                               m1, k1, n1, S1, tau1, zeta1, strength, mcmc$wei_slice[1], mcmc$wei_slice[2],
-                               nupd, out_param, mcmc_dens, discount, print_message, mean_dens, hyper, FALSE)
+                               m1, k1, n1, S1, tau1, zeta1, strength, mcmc$wei_slice[1], mcmc$wei_slice[2], nupd, out_param,
+                               mcmc_dens, discount, print_message, mean_dens, hyper, FALSE)
+    } else if(model == "L"){
+      est_model <- cSLI_mv_MKR_L(y, x, grid_y, grid_x, niter, nburn, m0, S0, a0, b0,
+                                 m1, k1, n1, S1, strength, mcmc$wei_slice[1], mcmc$wei_slice[2], nupd, out_param,
+                                 mcmc_dens, discount, print_message, mean_dens, hyper, FALSE)
     }
-
   } else if(method == "MAR"){
-
-    est_model <- MAR_mv_MKR(y, x, grid_y, grid_x, niter, nburn, m0, S0, a0, b0,
-                             m1, k1, n1, S1, tau1, zeta1, strength, m_marginal, nupd, out_param,
-                             mcmc_dens, discount, print_message, mean_dens, hyper)
-
+    if(model == "LS"){
+      est_model <- MAR_mv_MKR(y, x, grid_y, grid_x, niter, nburn, m0, S0, a0, b0,
+                              m1, k1, n1, S1, tau1, zeta1, strength, m_marginal, nupd, out_param,
+                              mcmc_dens, discount, print_message, mean_dens, hyper)
+    } else if(model == "L"){
+      est_model <- MAR_mv_MKR_L(y, x, grid_y, grid_x, niter, nburn, m0, S0, a0, b0,
+                                m1, k1, n1, S1, strength, m_marginal, nupd, out_param,
+                                mcmc_dens, discount, print_message, mean_dens, hyper)
+    }
   }
 
   # return the results
   if(!isTRUE(out_param)){
     if(isTRUE(mcmc_dens)){
       result <- BNPdens(density = est_model$dens,
-                        data = cbind(x[,2],y),
+                        data = cbind(y, x[,-1]),
                         grid_y = grid_y,
                         grid_x = grid_x,
                         clust = est_model$clust,
@@ -314,7 +377,7 @@ PYregression <- function(y, x,
                         regression = TRUE)
     }else{
       result <- BNPdens(clust = est_model$clust,
-                        data = cbind(x[,2],y),
+                        data = cbind(y, x[,-1]),
                         niter = niter,
                         nburn = nburn,
                         tot_time = est_model$time,
@@ -323,7 +386,7 @@ PYregression <- function(y, x,
   } else {
     if(isTRUE(mcmc_dens)){
       result <- BNPdens(density = est_model$dens,
-                        data = cbind(x[,2],y),
+                        data = cbind(y, x[,-1]),
                         grid_y = grid_y,
                         grid_x = grid_x,
                         clust = est_model$clust,
@@ -336,7 +399,7 @@ PYregression <- function(y, x,
                         regression = TRUE)
     }else{
       result <- BNPdens(clust = est_model$clust,
-                        data = cbind(x[,2],y),
+                        data = cbind(y, x[,-1]),
                         beta = est_model$beta,
                         sigma2 = est_model$sigma2,
                         probs = est_model$probs,

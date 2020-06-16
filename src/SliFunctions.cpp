@@ -2488,3 +2488,406 @@ void update_cluster_indep_SLI_mv_MRK(arma::vec y,
     }
   }
 }
+
+/*----------------------------------------------------------------------
+ *
+ * MIXTURE OF REGRESSION KERNELS
+ * LOCATION KERNEL
+ * SLI functions
+ *
+ *----------------------------------------------------------------------
+ */
+
+/*==================================================================================
+ * Accelerate - MULTIVARIATE importance conditional sampler - MRK
+ * acceleration step for reshuffling the parameters
+ * given an allocation
+ *
+ * args:
+ * - y:       target variable (n x 1)
+ * - covs:    covariates (n x (d + 1))
+ * - beta:    regression coefficients (k x (d+1))
+ * - sigma2:  scale component of kernel function
+ * - clust:   vector of allocation
+ * - beta0:   vector of location's prior distribution
+ * - Sb0:     double of NIG on scale of location distribution
+ * - a0:      shape parameter of scale component
+ * - b0:      scale parameter of scale component
+ *
+ * Void function
+ ==================================================================================*/
+
+void accelerate_SLI_mv_MRK_L(arma::vec y,
+                             arma::mat covs,
+                             arma::mat &beta,
+                             double &sigma2,
+                             arma::vec &v,
+                             arma::vec &w,
+                             arma::vec clust,
+                             arma::vec beta0,
+                             arma::mat Sb0,
+                             double a0,
+                             double b0,
+                             double mass,
+                             double sigma_PY){
+
+  arma::mat cdata;
+  arma::mat tdata;
+  arma::vec ty;
+
+  double an, bn, xtemp, ytemp;
+  arma::mat tSb;
+  arma::vec tbeta0;
+  double accu_cdata = 0.0;
+
+  int nj, ngj;
+
+  // loop over the clusters
+  for(arma::uword j = 0; j < beta.n_rows; j++){
+
+    // INITIALIZE CLUSTER RELATED QUANTITIES
+    nj  = arma::accu(clust == j);
+    ngj = arma::accu(clust > j);
+    tdata = covs.rows(arma::find(clust == j));
+    ty = y.elem(arma::find(clust == j));
+
+    // UPDATE THE LOCATIONS MARGINALLY
+    if(tdata.n_rows > 0){
+      cdata = ty - (tdata * beta.row(j).t());
+      accu_cdata += arma::accu(pow(cdata, 2));
+
+      // update the coefficients
+      tSb = arma::inv(arma::inv(Sb0) + arma::trans(tdata) * tdata / sigma2);
+      tbeta0 = tSb * (arma::inv(Sb0) * beta0 + (arma::trans(tdata) * ty) / sigma2);
+      beta.row(j) = arma::trans(arma::mvnrnd(tbeta0, tSb));
+
+    } else {
+
+      beta.row(j) = arma::trans(arma::mvnrnd(beta0, Sb0));
+    }
+
+    // update the variance
+    an = a0 + y.n_elem/2;
+    bn = b0 + accu_cdata / 2;
+    sigma2 = 1.0 / arma::randg(arma::distr_param(an, 1.0 / (bn)));
+
+
+    // SAMPLE THE WEIGHTS OF STICK-BREAKING REPRESENTATION
+    xtemp = arma::randg(arma::distr_param(1.0 - sigma_PY + nj, 1.0));
+    ytemp = arma::randg(arma::distr_param(mass + (j + 1) * sigma_PY + ngj, 1.0));
+    v[j]  = xtemp / (xtemp + ytemp);
+
+    if(j != 0){
+      w[j] = v[j] * ((1 - v[j-1]) * w[j - 1]) / v[j-1];
+    }else{
+      w[j] = v[j];
+    }
+  }
+}
+
+/*==================================================================================
+ * Hyper-accelerate - MULTIVARIATE importance conditional sampler - MRK
+ *
+ * args:
+ * - mu:      vector of location component
+ * - m0:      mean of location distribution
+ * - k0:      scale factor of location distribution
+ * - S20:     matrix of the scale distribution
+ * - n0:      df of scale distribution
+ * - m1:      hyperparameter, location component of m0
+ * - k1:      hyperparameter, scale parameter for variance of m0
+ * - theta1:  hyperparameter, df of S20 distribution
+ * - Theta2:  hyperparameter, matrix of S20 distribution
+ *
+ * Void function
+ ==================================================================================*/
+
+void hyper_accelerate_SLI_mv_MRK_L(arma::vec y,
+                                   arma::mat covs,
+                                   arma::vec clust,
+                                   arma::mat beta,
+                                   arma::vec &beta0,
+                                   arma::mat &Sb0,
+                                   arma::vec beta1,
+                                   double k1,
+                                   double sb1,
+                                   arma::mat Sb1){
+
+  arma::vec beta_acc(beta0.n_elem, arma::fill::zeros);
+  arma::mat Sb_acc(beta0.n_elem, beta0.n_elem, arma::fill::zeros);
+  int k = 0;
+
+  for(arma::uword j = 0; j < beta.n_rows; j++){
+    if(arma::accu(clust == j) != 0){
+      k += 1;
+      beta_acc += arma::trans(beta.row(j));
+    }
+  }
+
+  for(arma::uword j = 0; j < beta.n_rows; j++){
+    if(arma::accu(clust == j) != 0){
+      Sb_acc += (arma::trans(beta.row(j)) - beta_acc / k) * (beta.row(j) - arma::trans(beta_acc / k));
+    }
+  }
+
+  // sampling hyperparameters
+  double kn = k1 + k;
+  arma::vec betan = ((beta1 * k1) + beta_acc)/kn;
+  double sbn = sb1 + k;
+  arma::mat Sbn = Sb1 + Sb_acc + ((k1 * k) / kn) *
+    (beta_acc / k - beta1) * arma::trans(beta_acc / k - beta1);
+
+  Sb0 = arma::inv(arma::wishrnd(arma::inv(Sbn), sbn));
+  beta0 = arma::mvnrnd(betan, Sb0 / kn);
+}
+
+/*==================================================================================
+ * grow parameters - MULTIVARIATE slice sampler - MRK
+ * growing up the parameter vectors
+ * till reaching the condition sum(w) > u_i, for all i
+ *
+ * args:
+ * - mu:        matrix, each row a mean
+ * - v:         vector of stick break components
+ * - w:         vector of stick weights
+ * - u:         vector of uniform values
+ * - m0:        vector of location's prior distribution
+ * - k0:        vector of location's variance tuning parameter, one for each dimension
+ * - mass:      mass parameter
+ * - n:         number of observations
+ * - sigma_PY:  discount parameter
+ *
+ * Void function
+ ==================================================================================*/
+
+void grow_param_SLI_PY_mv_MRK_L(arma::mat &beta,
+                                arma::vec &v,
+                                arma::vec &w,
+                                arma::vec u,
+                                arma::vec beta0,
+                                arma::mat Sb0,
+                                double mass,
+                                int n,
+                                double sigma_PY){
+
+  double xtemp, ytemp;
+  double w_sum = arma::accu(w);
+  int k_old = beta.n_rows;
+  int k = w.n_elem;
+  int k_new;
+
+  while((sum((1 - u) < w_sum) < n)){
+
+    k = w.n_elem;
+    v.resize(k+1);
+    w.resize(k+1);
+
+    xtemp = arma::randg(arma::distr_param(1.0 - sigma_PY, 1.0));
+    ytemp = arma::randg(arma::distr_param(mass + (k + 1) * sigma_PY, 1.0));
+    v[k]  = xtemp / (xtemp + ytemp);
+
+    if(k == 0){
+      w[k] = v[k];
+    }else{
+      w[k] = v[k] * ((1 - v[k-1]) * w[k - 1]) / v[k-1];
+    }
+    w_sum = arma::accu(w);
+  }
+
+  k_new = w.n_elem;
+  beta.resize(k_new, beta.n_cols);
+
+  for(arma::uword j = k_old; j < k_new; j++){
+    beta.row(j) = arma::trans(arma::mvnrnd(beta0, Sb0));
+  }
+}
+
+
+/*==================================================================================
+ * grow parameters - MULTIVARIATE slice sampler - MRK
+ * growing up the parameter vectors
+ * till reaching the condition sum(w) > u_i, for all i
+ *
+ * args:
+ * - mu:        matrix, each row a mean
+ * - s2:        cube, each slice a covariance matrix
+ * - v:         vector of stick break components
+ * - w:         vector of stick weights
+ * - u:         vector of uniform values
+ * - m0:        vector of location's prior distribution
+ * - k0:        vector of location's variance tuning parameter, one for each dimension
+ * - a0:        vector of parameters for the scale component, one for each dimension
+ * - b0:        vector of parameters for the scale component, one for each dimension
+ * - mass:      mass parameter
+ * - n:         number of observations
+ * - sigma_PY:  discount parameter
+ *
+ * Void function
+ ==================================================================================*/
+
+void grow_param_indep_SLI_PY_mv_MRK_L(arma::mat &beta,
+                                      arma::vec &v,
+                                      arma::vec &w,
+                                      arma::vec &xi,
+                                      arma::vec u,
+                                      arma::vec beta0,
+                                      arma::mat Sb0,
+                                      double mass,
+                                      int n,
+                                      double sigma_PY,
+                                      double param_seq_one,
+                                      double param_seq_two){
+
+  double xtemp, ytemp;
+  double xi_sum = arma::accu(xi);
+  int k_old = beta.n_rows;
+  int k = w.n_elem;
+  int k_new;
+
+  while((sum((1 - u) <= xi_sum) < n)){
+
+    k = w.n_elem;
+    v.resize(k+1);
+    w.resize(k+1);
+    xi.resize(k+1);
+
+    xtemp = arma::randg(arma::distr_param(1.0 - sigma_PY, 1.0));
+    ytemp = arma::randg(arma::distr_param(mass + (k + 1) * sigma_PY, 1.0));
+    v[k]  = xtemp / (xtemp + ytemp);
+
+    if(k == 0){
+      w[k] = v[k];
+    }else{
+      w[k] = v[k] * ((1 - v[k-1]) * w[k - 1]) / v[k-1];
+    }
+
+    xi[k] = xi[k - 1] * (param_seq_one + k * param_seq_two) / (param_seq_one + 1 + k * param_seq_two);
+    xi_sum += xi[k];
+  }
+
+  k_new = w.n_elem;
+  beta.resize(k_new, beta.n_cols);
+
+  for(arma::uword j = k_old; j < k_new; j++){
+    beta.row(j) = arma::trans(arma::mvnrnd(beta0, Sb0));
+  }
+}
+
+/*==================================================================================
+ * Update clusters - MULTIVARIATE slice sampler - MRK
+ *
+ * args:
+ * - data:        vector of observation
+ * - mujoin:      mean values for each component
+ * - s2join:      variance for each component
+ * - probjoin:    prob for each component
+ * - clust:       vector of allocation
+ * - max_val:     vector, number of already existent atoms
+ * - iter:        current iteration
+ * - new_val:     vector of new values
+ *
+ * void function
+ ==================================================================================*/
+
+void update_cluster_SLI_mv_MRK_L(arma::vec y,
+                                 arma::mat covs,
+                                 arma::mat beta,
+                                 double sigma2,
+                                 arma::vec &clust,
+                                 arma::vec w,
+                                 arma::vec u){
+  int n = covs.n_rows;
+  int k = beta.n_rows;
+
+  arma::uvec index_use;
+  arma::uvec index = arma::regspace<arma::uvec>(0, k - 1);
+  arma::vec probs;
+  int siz;
+  int sampled;
+
+  for(arma::uword i = 0; i < n; i++){
+    siz = 0;
+    index_use.resize(1);
+    for(arma::uword r = 0; r < k; r++){
+      if(w[r] > u[i]){
+        siz++;
+        index_use.resize(siz);
+        index_use[siz - 1] = index[r];
+      }
+    }
+
+    if(index_use.n_elem == 1){
+      clust[i] = index_use[0];
+    } else {
+      probs.resize(index_use.n_elem);
+      for(arma::uword j = 0; j < index_use.n_elem; j++){
+        probs(j) = - log(2 * M_PI * sigma2) / 2 -
+          (pow(y(i) - arma::dot(covs.row(i), beta.row(index_use(j))), 2) /
+            (2 * sigma2));
+      }
+
+      sampled = rintnunif_log(probs);
+      clust[i] = index_use[sampled];
+    }
+  }
+}
+
+/*==================================================================================
+ * Update clusters - MULTIVARIATE slice sampler - MRK - INDEP
+ *
+ * args:
+ * - data:        vector of observation
+ * - mujoin:      mean values for each component
+ * - s2join:      variance for each component
+ * - probjoin:    prob for each component
+ * - clust:       vector of allocation
+ * - max_val:     vector, number of already existent atoms
+ * - iter:        current iteration
+ * - new_val:     vector of new values
+ *
+ * void function
+ ==================================================================================*/
+
+void update_cluster_indep_SLI_mv_MRK_L(arma::vec y,
+                                       arma::mat covs,
+                                       arma::mat beta,
+                                       double sigma2,
+                                       arma::vec &clust,
+                                       arma::vec w,
+                                       arma::vec xi,
+                                       arma::vec u){
+  int n = covs.n_rows;
+  int k = beta.n_rows;
+
+  arma::uvec index_use;
+  arma::uvec index = arma::regspace<arma::uvec>(0, k - 1);
+  arma::vec probs;
+  int siz;
+  int sampled;
+
+  for(arma::uword i = 0; i < n; i++){
+    siz = 0;
+    index_use.resize(1);
+    for(arma::uword r = 0; r < k; r++){
+      if(xi[r] > u[i]){
+        siz++;
+        index_use.resize(siz);
+        index_use[siz - 1] = index[r];
+      }
+    }
+
+    if(index_use.n_elem == 1){
+      clust[i] = index_use[0];
+    } else {
+      probs.resize(index_use.n_elem);
+      for(arma::uword j = 0; j < index_use.n_elem; j++){
+        probs(j) = log(w(index_use[j])) - log(xi(index_use[j])) - log(2 * M_PI * sigma2) / 2 -
+          (pow(y(i) - arma::dot(covs.row(i), beta.row(index_use(j))), 2) /
+            (2 * sigma2));
+      }
+
+      sampled = rintnunif_log(probs);
+      clust[i] = index_use[sampled];
+    }
+  }
+}

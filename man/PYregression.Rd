@@ -42,7 +42,7 @@ PYregression(y, x, mcmc = list(), prior = list(), output = list())
 (default are \code{strength = 1} and \code{discount = 0}, the latter leading to the Dirichlet process).
 The remaining parameters specify the base measure: \code{m0} and \code{S0} are
  the mean and covariance of normal base measure on the regression coefficients (default are a vector of zeroes, except for the first element equal
- to \code{mean(y)}, and a diagonal matrix with each element equal to 100, except for the first element equal to var(y));
+ to \code{mean(y)}, and a diagonal matrix with each element equal to 100);
  \code{a0} and \code{b0} are the shape and scale parameters of the inverse gamma base measure on the scale component
  (default are 2 and var(y)).
  If \code{hyper = TRUE},  optional hyperpriors on the base measure's parameters are added:

@@ -58,7 +58,7 @@
 #' (default are \code{strength = 1} and \code{discount = 0}, the latter leading to the Dirichlet process).
 #' The remaining parameters specify the base measure: \code{m0} and \code{S0} are
 #'  the mean and covariance of normal base measure on the regression coefficients (default are a vector of zeroes, except for the first element equal
-#'  to \code{mean(y)}, and a diagonal matrix with each element equal to 100, except for the first element equal to var(y));
+#'  to \code{mean(y)}, and a diagonal matrix with each element equal to 100);
 #'  \code{a0} and \code{b0} are the shape and scale parameters of the inverse gamma base measure on the scale component
 #'  (default are 2 and var(y)).
 #'  If \code{hyper = TRUE},  optional hyperpriors on the base measure's parameters are added:
@@ -145,7 +145,7 @@ PYregression <- function(y, x,
                           output = list()){
 
   if(!is.vector(y)) stop("Wrong dimensions: y need to be a vector")
-  if(!(is.matrix(x) | is.vector(x))) stop("Wrong dimensions: x need to be a vector or a matrix")
+  if(!(is.data.frame(x) | is.matrix(x) | is.vector(x))) stop("Wrong dimensions: x need to be a vector or a matrix")
 
   if(!is.list(mcmc)) stop("mcmc must be a list")
   if(!is.list(prior)) stop("prior must be a list")
@@ -282,17 +282,17 @@ PYregression <- function(y, x,
     if(is.null(prior$a0)){ a0 = 2 } else { a0 = prior$a0 }
     if(is.null(prior$m1)){ m1 = c(mean(y), rep(0, d - 1)) } else { m1 = prior$m1 }
     if(is.null(prior$k1)){ k1 = 1 } else { k1 = prior$k1 }
-    if(is.null(prior$tau1)){ tau1 = 1 } else { tau1 = prior$tau1 }
+    if(is.null(prior$tau1)){ tau1 = var(y) } else { tau1 = prior$tau1 }
     if(is.null(prior$zeta1)){ zeta1 = 1 } else { zeta1 = prior$zeta1 }
     if(is.null(prior$n1)){ n1 = d + 2 } else { n1 = prior$n1 }
-    if(is.null(prior$S1)){ S1 = diag(c(var(y), rep(100, d - 1))) } else { S1 = prior$S1 }
+    if(is.null(prior$S1)){ S1 = diag(100, d) } else { S1 = prior$S1 }
 
     if(is.null(prior$S0)){ S0 = solve(rWishart(n = 1, Sigma = solve(S1), df = n1)[,,1]) } else { S0 = prior$S0 }
     if(is.null(prior$m0)){ m0 = as.vector(rnorm(d) %*% (t(chol(S0)) / k1) + m1) } else { m0 = prior$m0 }
     if(is.null(prior$b0)){ b0 = rgamma(1, tau1, zeta1) } else { b0 = prior$b0 }
   } else {
     if(is.null(prior$m0)){ m0 = c(mean(y), rep(0, d - 1))  } else { m0 = prior$m0 }
-    if(is.null(prior$S0)){ S0 = diag(c(var(y), rep(100, d - 1))) } else { S0 = prior$S0 }
+    if(is.null(prior$S0)){ S0 = diag(100, d) } else { S0 = prior$S0 }
     if(is.null(prior$a0)){ a0 = 2 } else { a0 = prior$a0 }
     if(is.null(prior$b0)){ b0 = var(y) } else { b0 = prior$b0 }
 

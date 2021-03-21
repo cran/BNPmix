@@ -581,7 +581,7 @@ PYdensity <- function(y,
         if(is.null(prior$tau1)){ tau1 = 1 } else { tau1 = prior$tau1 }
         if(is.null(prior$zeta1)){ zeta1 = 1 } else { zeta1 = prior$zeta1 }
         if(is.null(prior$n1)){ n1 = ncol(y) + 2 } else { n1 = prior$n1 }
-        if(is.null(prior$Sigma1)){ Sigma1 = var(y)/n1 } else { Sigma1 = prior$Sigma1 }
+        if(is.null(prior$Sigma1)){ Sigma1 = var(y) } else { Sigma1 = prior$Sigma1 }
         if(is.null(prior$n0)){ n0 = ncol(y) + 2 } else { n0 = prior$n0 }
 
         if(is.null(prior$Sigma0)){ Sigma0 = rWishart(n = 1, Sigma = Sigma1, df = n1)[,,1] } else {Sigma0 = prior$Sigma0}
@@ -590,8 +590,8 @@ PYdensity <- function(y,
       } else {
         if(is.null(prior$m0)){ m0 = colMeans(y) } else { m0 = prior$m0 }
         if(is.null(prior$k0)){ k0 = 1 } else { k0 = prior$k0 }
-        if(is.null(prior$Sigma0)){ Sigma0 = var(y) } else { Sigma0 = prior$Sigma0 }
         if(is.null(prior$n0)){ n0 = ncol(y) + 2 } else { n0 = prior$n0 }
+        if(is.null(prior$Sigma0)){ Sigma0 = var(y) / n0 } else { Sigma0 = prior$Sigma0 }
 
         m1 <- rep(0, ncol(y))
         n1 <- tau1 <- zeta1 <- 0
@@ -603,8 +603,8 @@ PYdensity <- function(y,
         if(is.null(prior$k1)){ k1 = 1 } else { k1 = prior$k1 }
         if(is.null(prior$lambda1)){ lambda1 = ncol(y) + 2 } else { lambda1 = prior$lambda1 }
         if(is.null(prior$Lambda1)){ Lambda1 = var(y) } else { Lambda1 = prior$Lambda1 }
-        if(is.null(prior$Sigma0)){ Sigma0 = var(y) } else { Sigma0 = prior$Sigma0 }
         if(is.null(prior$n0)){ n0 = ncol(y) + 2 } else { n0 = prior$n0 }
+        if(is.null(prior$Sigma0)){ Sigma0 = var(y) } else { Sigma0 = prior$Sigma0 }
 
         if(is.null(prior$S20)){ S20 = solve(rWishart(n = 1, Sigma = solve(Lambda1), df = lambda1)[,,1]) } else {S20 = prior$S20}
         if(is.null(prior$m0)){ m0 = as.vector(rnorm(ncol(y)) %*% t(chol(S20)) + m1)} else { m0 = prior$m0 }

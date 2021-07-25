@@ -1,4 +1,4 @@
-56e8399f07a701a1be16f4df71255f93 *DESCRIPTION
+272016603ce87080b8e2a619d669b915 *DESCRIPTION
 6a6a8e020838b23406c81b19c1d46df6 *LICENSE
 2d9df3fb21b35bd952105ca2e7adbfbf *NAMESPACE
 b4fe12876c37f8a22cde06e9701eecf0 *R/BNPmix-package.R
@@ -10,7 +10,10 @@ d57e521f3062cdd3a052b069822672da *R/DDPdensity.R
 615eff317353896e1e0876e15e0e740a *R/class_generic.R
 ee151cd78c51bbce32a2d36bff9574b8 *R/utilities.R
 c08ae63252a7bc2fe5b288239d07cd58 *README.md
+33fb5d6887ea61dd37d319126ed6a654 *build/vignette.rds
 1c6f21c036d534cbb92120a2aacb668c *data/CPP.RData
+888a53a5c70cc30ec74c3fe073076379 *inst/doc/BNPmix.ltx
+c64214db85ac098bc5c188f50fadd00b *inst/doc/BNPmix.pdf
 8b9bf6cb2f41424934f813d29e6368a3 *man/BNPdens.Rd
 fafa57addab7de304240e124d80f5e4f *man/BNPdens2coda.BNPdens.Rd
 027a51b6748494f0ecfa73a5826e965f *man/BNPdens2coda.Rd
@@ -55,15 +58,15 @@ c8731d4a2a19ad61d4a380f8917bb9a1 *man/plot.BNPdens.Rd
 e3b488de03e5ba36584b5fd76d9fad38 *man/print.BNPdens.Rd
 5bc85c715f2fc3ceec4329fc860407f8 *man/summary.BNPdens.Rd
 4c722ea84608a4a061a523f2a04faa8b *src/BNPmix_init.c
-35e1018746aba9f2c7c52690c822a0bf *src/CommonUtilities.cpp
-42b8bf9953e879947a7dd6a96e690a90 *src/CommonUtilities.h
+26863cebc2905db14b75da6a519ad968 *src/CommonUtilities.cpp
+28e1fff1ae86fa13afec297d70e40882 *src/CommonUtilities.h
 d39e5b2405e12f430f2b4002f47daad4 *src/DdpFunctions.cpp
 22d0f61522fd6acdd7a03ab2b1a66126 *src/DdpFunctions.h
 1c46dadd9d30b5bc2705239b33892f15 *src/Distributions.cpp
 52a8a6540d542e4fdbf0b8973d8e3f7d *src/Distributions.h
 3904f6018448818254247971f2838fbd *src/IcsFunctions.cpp
 57d6e55978f8b552a676fc7140a1581e *src/IcsFunctions.h
-2f21fda93ec3fef86a15ed4a99669b78 *src/MAR.cpp
+a91156bff6fe1e7729d540ad27bede9b *src/MAR.cpp
 aee8b8f35ba4b3878c1ee255e0827e9e *src/Makevars
 1ec76f90dc9cd1be29e1296255f880b4 *src/Makevars.win
 99edef09b4b09a16df2218346f59edfd *src/MarFunctions.cpp
@@ -75,3 +78,11 @@ e2f18b6eb27edf58a0d15520d30774e2 *src/MarFunctions.h
 ba1ed99be932727f7a99399a210627a3 *src/cICS.cpp
 3b66c9d163fa87b988e0c633fb7e5d2d *src/cSLI.cpp
 e373ae4658394930732293c152ae9a2e *src/est_partition.cpp
+888a53a5c70cc30ec74c3fe073076379 *vignettes/BNPmix.ltx
+4eface4219072e7607cf579422247ef6 *vignettes/BNPmix_ref.bib
+e3f63a499d90c49845f4dbef0c2b1047 *vignettes/Figures/ddp.pdf
+1750bc43f1311c1567318b22e6273499 *vignettes/Figures/dendro.pdf
+487679eba4d69e6b49cac8d1f71377ec *vignettes/Figures/mosaic.pdf
+b9168ae9622012fca6c80c33d28996ec *vignettes/Figures/regression.pdf
+7aeb9cf5f18dc67e561b81c0618d0227 *vignettes/Figures/univariate.pdf
+9e945fc345f1146dc52a031fa9d939b8 *vignettes/Figures/univariate2.pdf

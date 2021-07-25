@@ -322,10 +322,16 @@ Rcpp::List MAR(arma::vec data,
       result_probs(iter - nburn) = tab_freq / n;
 
       if(out_dens){
-        dens = eval_density(grid,
+        tab_freq.resize(tab_freq.n_elem + 1);
+        tab_freq(tab_freq.n_elem - 1) = mass + mu.n_elem * sigma_PY;
+        dens = eval_density_MAR(grid,
                             mu,
                             s2,
-                            tab_freq);
+                            tab_freq,
+                            m0,
+                            k0,
+                            a0,
+                            b0);
         result_dens.row(iter - nburn) = arma::trans(dens);
       }
     }

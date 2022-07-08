@@ -154,11 +154,10 @@ void para_clean_DDP(arma::field<arma::vec> &mu,
       }
 
       // reduce dimensions
-      if(any(group_log == g)){
-        int m_ind = max(clust.elem(arma::find(group_log == g))) + 1;
-        mu(g).resize(m_ind);
-        s2(g).resize(m_ind);
-      }
+      int m_ind = max(clust.elem(arma::find(group_log == g))) + 1;
+      mu(g).resize(m_ind);
+      s2(g).resize(m_ind);
+
     } else {
 
       // if the urn is empty, resize to 0
@@ -222,7 +221,7 @@ void simu_trunc_DDP(arma::field<arma::vec> &mutemp,
         temp_cl = rintnunifw(freqtemp(g), mass * (1 - wei));
       }
 
-      if(temp_cl < (k - 1)){
+      if(temp_cl < k){
 
         // if is an existing one, increase the freq
         freqtemp(g)(temp_cl) += 1;
@@ -298,11 +297,11 @@ void clust_update_DDP(arma::vec data,
       } else {
         temp_proc_cum(i, 1) += probs_upd(j);
       }
-
     }
 
     // sample the allocation, if new update new_val
     clust(i) = rintnunif(probs_upd);
+
     if(clust(i) >= max_val(index)){
       group_log(i) = 0;
       clust(i) = clust(i) - max_val(index);
@@ -345,89 +344,33 @@ void update_w_DDP(arma::vec &w,
   // and the vector for the probabilities
   int n = group.n_elem;
   arma::mat uvals(n_approx_unif, ngr, arma::fill::randu);
-  // arma::mat uvals(49*49, 2);
-  // arma::vec tv = arma::regspace( 0.02, 0.02, 1 );
-  // int k = 0;
-  // for(arma::uword i = 0; i < 49; i++){
-  //   for(arma::uword j = 0; j < 49; j++){
-  //     uvals(k,0) = tv(i);
-  //     uvals(k,1) = tv(j);
-  //     k++;
-  //   }
-  // }
-
   arma::vec imp_probs(uvals.n_rows);
 
   double tempval;
 
   // loop over each sampled value from the uniform
-  // for(arma::uword j = 0; j < n_approx_unif; j++){
   for(arma::uword j = 0; j < uvals.n_rows; j++){
 
     tempval = 0.0;
     for(arma::uword g = 0; g < ngr; g++){
 
-      tempval += log(std::pow(uvals.row(j)(g), mass * wei - 1) /
-        std::pow(1 - uvals.row(j)(g), mass * wei + 1));
+      tempval += (mass * wei - 1) * log(uvals.row(j)(g)) -
+        (mass * wei + 1) * log(1 - uvals.row(j)(g));
 
       for(arma::uword i = 0; i < n; i++){
-        if(group(i) == g){
+        if(group(i) == g + 1){
           tempval += log(uvals.row(j)(g) * temp_proc_cum(i,0) +
             (1 - uvals.row(j)(g)) * temp_proc_cum(i,1));
         }
       }
 
-      tempval += (- ngr * mass * wei - mass * (1 - wei)) * log(1 + arma::accu(uvals.row(j) / (1 - uvals.row(j))));
+      tempval += (- ngr * mass * wei - mass * (1 - wei)) *
+        log(1 + arma::accu(uvals.row(j) / (1 - uvals.row(j))));
     }
-
-
-    // update j-th element of the probs vector
     imp_probs(j) = tempval;
   }
 
   int index = rintnunif_log(imp_probs);
   w = arma::trans(uvals.row(index));
 
-  // // generate n_approx_unif values from an uniform distribution defined
-  // // on the hypercube with same dimension as w
-  // // and the vector for the probabilities
-  // int n = group.n_elem;
-  // double tempval;
-  // arma::vec temp_w(w);
-  // double const_w = 0.0;
-  // arma::vec uvals(n_approx_unif);
-  // arma::vec imp_probs(n_approx_unif);
-  // // arma::vec uvals = arma::regspace( 0.02, 0.02, 0.98 );
-  // // arma::vec imp_probs(uvals.n_elem);
-  //
-  // // loop over each sampled value from the uniform
-  // for(arma::uword g = 0; g < ngr; g++){
-  //
-  //   uvals.randu();
-  //   imp_probs.fill(0.0);
-  //   temp_w = w;
-  //   temp_w(g) = 0;
-  //   const_w = 1 + arma::accu(temp_w / (1 - temp_w));
-  //
-  //   // sample the g element of w
-  //   for(arma::uword j = 0; j < uvals.n_elem; j++){
-  //
-  //     tempval = 0.0;
-  //     tempval += log(std::pow(uvals(j), mass * wei - 1) / std::pow(1 - uvals(j), mass * wei + 1));
-  //
-  //     for(arma::uword i = 0; i < n; i++){
-  //       if(group(i) == g){
-  //         tempval += log(uvals(j) * temp_proc_cum(i,0) +
-  //           (1 - uvals(j)) * temp_proc_cum(i,1));
-  //       }
-  //     }
-  //
-  //     tempval += (- ngr * mass * wei - mass * (1 - wei)) * log(const_w + (uvals(j) / ( 1 - uvals(j))));
-  //     imp_probs(j) = tempval;
-  //   }
-  //
-  //   int index = rintnunif_log(imp_probs);
-  //   w(g) = uvals(index);
-  //
-  // }
 }

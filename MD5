@@ -1,4 +1,4 @@
-59d6a85d2c65269e6b0c1d0c0f77b368 *DESCRIPTION
+bf96b07103615c0210234a5256a3cd89 *DESCRIPTION
 6a6a8e020838b23406c81b19c1d46df6 *LICENSE
 2d9df3fb21b35bd952105ca2e7adbfbf *NAMESPACE
 b4fe12876c37f8a22cde06e9701eecf0 *R/BNPmix-package.R
@@ -10,11 +10,11 @@ e965cb0bd06539bf263fc3107c47cf43 *R/CPP.R
 615eff317353896e1e0876e15e0e740a *R/class_generic.R
 ee151cd78c51bbce32a2d36bff9574b8 *R/utilities.R
 c08ae63252a7bc2fe5b288239d07cd58 *README.md
-33fb5d6887ea61dd37d319126ed6a654 *build/vignette.rds
+6a2f19e10bd74de843d018a1cead5cfe *build/vignette.rds
 1c6f21c036d534cbb92120a2aacb668c *data/CPP.RData
 5dd186b31212cd92a6d26a8370a9ba3b *inst/CITATION
 2cc75042225c9102119ff11aa4e896aa *inst/doc/BNPmix.ltx
-a01460a43c255b59229e4f3bf549b402 *inst/doc/BNPmix.pdf
+c2eb19731fee991f6c4e24f320cd8648 *inst/doc/BNPmix.pdf
 8b9bf6cb2f41424934f813d29e6368a3 *man/BNPdens.Rd
 fafa57addab7de304240e124d80f5e4f *man/BNPdens2coda.BNPdens.Rd
 027a51b6748494f0ecfa73a5826e965f *man/BNPdens2coda.Rd
@@ -61,7 +61,7 @@ e3b488de03e5ba36584b5fd76d9fad38 *man/print.BNPdens.Rd
 4c722ea84608a4a061a523f2a04faa8b *src/BNPmix_init.c
 26863cebc2905db14b75da6a519ad968 *src/CommonUtilities.cpp
 28e1fff1ae86fa13afec297d70e40882 *src/CommonUtilities.h
-d39e5b2405e12f430f2b4002f47daad4 *src/DdpFunctions.cpp
+311033e20487265dade88b3d2c5bc7ce *src/DdpFunctions.cpp
 22d0f61522fd6acdd7a03ab2b1a66126 *src/DdpFunctions.h
 1c46dadd9d30b5bc2705239b33892f15 *src/Distributions.cpp
 52a8a6540d542e4fdbf0b8973d8e3f7d *src/Distributions.h
@@ -72,10 +72,10 @@ aee8b8f35ba4b3878c1ee255e0827e9e *src/Makevars
 1ec76f90dc9cd1be29e1296255f880b4 *src/Makevars.win
 99edef09b4b09a16df2218346f59edfd *src/MarFunctions.cpp
 e2f18b6eb27edf58a0d15520d30774e2 *src/MarFunctions.h
-5fca488b47d44d2f57d36a1deb55e825 *src/RcppExports.cpp
+eb94cb242ab6421f23ff1ff564c08e46 *src/RcppExports.cpp
 51c38e3b45158b02dca3460cf28049d9 *src/SliFunctions.cpp
 163113f77b0eb58e9ec71476a525d8da *src/SliFunctions.h
-4887d408ce7a9c835271a6297bb5650d *src/cDDP.cpp
+4bae36c5858eda3fc210f589baa25eaa *src/cDDP.cpp
 ba1ed99be932727f7a99399a210627a3 *src/cICS.cpp
 3b66c9d163fa87b988e0c633fb7e5d2d *src/cSLI.cpp
 e373ae4658394930732293c152ae9a2e *src/est_partition.cpp

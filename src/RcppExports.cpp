@@ -6,6 +6,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // MAR_L
 Rcpp::List MAR_L(arma::vec data, arma::vec grid, int niter, int nburn, double m0, double s20, double a0, double b0, double m1, double k1, double a1, double b1, double mass, int nupd, bool out_param, bool out_dens, double sigma_PY, bool print_message, bool hyper);
 RcppExport SEXP _BNPmix_MAR_L(SEXP dataSEXP, SEXP gridSEXP, SEXP niterSEXP, SEXP nburnSEXP, SEXP m0SEXP, SEXP s20SEXP, SEXP a0SEXP, SEXP b0SEXP, SEXP m1SEXP, SEXP k1SEXP, SEXP a1SEXP, SEXP b1SEXP, SEXP massSEXP, SEXP nupdSEXP, SEXP out_paramSEXP, SEXP out_densSEXP, SEXP sigma_PYSEXP, SEXP print_messageSEXP, SEXP hyperSEXP) {

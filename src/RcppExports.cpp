@@ -234,8 +234,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // cDDP
-Rcpp::List cDDP(arma::vec data, arma::vec group, int ngr, arma::vec grid, int niter, int nburn, double m0, double k0, double a0, double b0, double mass, double wei, int napprox, int n_approx_unif, int nupd, bool out_dens, bool print_message, bool light_dens);
-RcppExport SEXP _BNPmix_cDDP(SEXP dataSEXP, SEXP groupSEXP, SEXP ngrSEXP, SEXP gridSEXP, SEXP niterSEXP, SEXP nburnSEXP, SEXP m0SEXP, SEXP k0SEXP, SEXP a0SEXP, SEXP b0SEXP, SEXP massSEXP, SEXP weiSEXP, SEXP napproxSEXP, SEXP n_approx_unifSEXP, SEXP nupdSEXP, SEXP out_densSEXP, SEXP print_messageSEXP, SEXP light_densSEXP) {
+Rcpp::List cDDP(arma::vec data, arma::vec group, int ngr, arma::vec grid, int niter, int nburn, double m0, double k0, double a0, double b0, double mass, double wei, int napprox, double var_MH_step, int nupd, bool out_dens, bool print_message, bool light_dens);
+RcppExport SEXP _BNPmix_cDDP(SEXP dataSEXP, SEXP groupSEXP, SEXP ngrSEXP, SEXP gridSEXP, SEXP niterSEXP, SEXP nburnSEXP, SEXP m0SEXP, SEXP k0SEXP, SEXP a0SEXP, SEXP b0SEXP, SEXP massSEXP, SEXP weiSEXP, SEXP napproxSEXP, SEXP var_MH_stepSEXP, SEXP nupdSEXP, SEXP out_densSEXP, SEXP print_messageSEXP, SEXP light_densSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -252,12 +252,12 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type mass(massSEXP);
     Rcpp::traits::input_parameter< double >::type wei(weiSEXP);
     Rcpp::traits::input_parameter< int >::type napprox(napproxSEXP);
-    Rcpp::traits::input_parameter< int >::type n_approx_unif(n_approx_unifSEXP);
+    Rcpp::traits::input_parameter< double >::type var_MH_step(var_MH_stepSEXP);
     Rcpp::traits::input_parameter< int >::type nupd(nupdSEXP);
     Rcpp::traits::input_parameter< bool >::type out_dens(out_densSEXP);
     Rcpp::traits::input_parameter< bool >::type print_message(print_messageSEXP);
     Rcpp::traits::input_parameter< bool >::type light_dens(light_densSEXP);
-    rcpp_result_gen = Rcpp::wrap(cDDP(data, group, ngr, grid, niter, nburn, m0, k0, a0, b0, mass, wei, napprox, n_approx_unif, nupd, out_dens, print_message, light_dens));
+    rcpp_result_gen = Rcpp::wrap(cDDP(data, group, ngr, grid, niter, nburn, m0, k0, a0, b0, mass, wei, napprox, var_MH_step, nupd, out_dens, print_message, light_dens));
     return rcpp_result_gen;
 END_RCPP
 }

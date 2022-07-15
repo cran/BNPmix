@@ -64,7 +64,7 @@ Rcpp::List cDDP(arma::vec data,
                 double mass,
                 double wei,
                 int napprox,
-                int n_approx_unif,
+                double var_MH_step,
                 int nupd = 0,
                 bool out_dens = 1,
                 bool print_message = 1,
@@ -130,6 +130,7 @@ Rcpp::List cDDP(arma::vec data,
   ptilde(0).fill(1);
   clust.fill(0);
   temp_proc_cum.fill(1.0);
+  w.fill(wei);
 
   int start_s = clock();
   int current_s;
@@ -157,18 +158,12 @@ Rcpp::List cDDP(arma::vec data,
         }
       } else {
         ptilde(g).resize(1);
-        double temp = arma::randg(1, arma::distr_param(1.0, 1.0))[0];
-        if(g != 0){
-          temp2 = arma::randg(1, arma::distr_param(mass * wei, 1.0))[0];
-        } else {
-          temp2 = arma::randg(1, arma::distr_param(mass * (1 - wei), 1.0))[0];
-        }
-        ptilde(g)(0) =  temp2 / ( temp + temp2);
+        ptilde(g)(0) = 1.0;
       }
     }
 
     // update w
-    update_w_DDP(w, mass, wei, n_approx_unif, group_log, clust, group, temp_proc_cum, ngr);
+    update_w_DDP(w, mass, wei, var_MH_step, group_log, clust, group, temp_proc_cum, ngr);
 
     // acceleration step
     accelerate_DDP(data, group, group_log, mu, s2, clust, m0, k0, a0, b0, ngr);
@@ -206,7 +201,6 @@ Rcpp::List cDDP(arma::vec data,
 
       max_val(g - 1) = mujoin(g).n_elem;
     }
-
 
     // update cluster allocations
     clust_update_DDP(data, group, group_log, mujoin_complete, s2join_complete,

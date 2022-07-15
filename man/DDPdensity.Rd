@@ -27,6 +27,8 @@ for the elements of \code{y};}
   \item \code{m_imp}, number of generated values for the importance sampling step of the
   importance conditional sampler (default is 10). See \code{details}.
 
+  \item \code{var_MH_step}, variance of the Gaussian proposal for the Metropolis-Hastings of the weights update (default is 0.25).
+
 }}
 
 \item{prior}{a list giving the prior information, which contains:
@@ -88,7 +90,7 @@ data_toy <- c(rnorm(50, -4, 1), rnorm(100, 0, 1), rnorm(50, 4, 1))
 group_toy <- c(rep(1,100), rep(2,100))
 grid <- seq(-7, 7, length.out = 50)
 est_model <- DDPdensity(y = data_toy, group = group_toy,
-mcmc = list(niter = 200, nburn = 100, napprox_unif = 50),
+mcmc = list(niter = 200, nburn = 100, var_MH_step = 0.25),
 output = list(grid = grid))
 summary(est_model)
 plot(est_model)

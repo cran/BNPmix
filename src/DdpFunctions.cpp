@@ -329,10 +329,63 @@ void clust_update_DDP(arma::vec data,
 * ==================================================================================
 */
 
+// void update_w_DDP(arma::vec &w,
+//                   double mass,
+//                   double wei,
+//                   int n_approx_unif,
+//                   arma::vec group_log,
+//                   arma::vec clust,
+//                   arma::vec group,
+//                   arma::mat temp_proc_cum,
+//                   int ngr){
+//
+//   // generate n_approx_unif values from an uniform distribution defined
+//   // on the hypercube with same dimension as w
+//   // and the vector for the probabilities
+//   int n = group.n_elem;
+//   arma::mat uvals(n_approx_unif, ngr, arma::fill::randu);
+//   arma::vec imp_probs(uvals.n_rows);
+//
+//   Rcpp::Rcout << uvals << "\n\n";
+//   double tempval;
+//
+//   // loop over each sampled value from the uniform
+//   for(arma::uword j = 0; j < uvals.n_rows; j++){
+//
+//     tempval = 0.0;
+//     for(arma::uword g = 0; g < ngr; g++){
+//
+//       tempval += (mass * wei - 1) * log(uvals.row(j)(g)) -
+//         (mass * wei + 1) * log(1 - uvals.row(j)(g));
+//
+//       for(arma::uword i = 0; i < n; i++){
+//         if(group(i) == g + 1){
+//           tempval += log(uvals.row(j)(g) * temp_proc_cum(i,0) +
+//             (1 - uvals.row(j)(g)) * temp_proc_cum(i,1));
+//           // if(group_log(i) == 0){
+//           //   tempval += log((1 - uvals.row(j)(g)) * temp_proc_cum(i,1));
+//           // } else {
+//           //   tempval += log(uvals.row(j)(g) * temp_proc_cum(i,0));
+//           // }
+//         }
+//       }
+//
+//       tempval += (- ngr * mass * wei - mass * (1 - wei)) *
+//         log(1 + arma::accu(uvals.row(j) / (1 - uvals.row(j))));
+//     }
+//     imp_probs(j) = tempval;
+//   }
+//
+//   Rcpp::Rcout << imp_probs.t() << "\n\n";
+//   int index = rintnunif_log(imp_probs);
+//   w = arma::trans(uvals.row(index));
+//
+// }
+
 void update_w_DDP(arma::vec &w,
                   double mass,
                   double wei,
-                  int n_approx_unif,
+                  double var_MH_step,
                   arma::vec group_log,
                   arma::vec clust,
                   arma::vec group,
@@ -343,34 +396,42 @@ void update_w_DDP(arma::vec &w,
   // on the hypercube with same dimension as w
   // and the vector for the probabilities
   int n = group.n_elem;
-  arma::mat uvals(n_approx_unif, ngr, arma::fill::randu);
-  arma::vec imp_probs(uvals.n_rows);
-
   double tempval;
 
-  // loop over each sampled value from the uniform
-  for(arma::uword j = 0; j < uvals.n_rows; j++){
-
-    tempval = 0.0;
-    for(arma::uword g = 0; g < ngr; g++){
-
-      tempval += (mass * wei - 1) * log(uvals.row(j)(g)) -
-        (mass * wei + 1) * log(1 - uvals.row(j)(g));
-
-      for(arma::uword i = 0; i < n; i++){
-        if(group(i) == g + 1){
-          tempval += log(uvals.row(j)(g) * temp_proc_cum(i,0) +
-            (1 - uvals.row(j)(g)) * temp_proc_cum(i,1));
-        }
-      }
-
-      tempval += (- ngr * mass * wei - mass * (1 - wei)) *
-        log(1 + arma::accu(uvals.row(j) / (1 - uvals.row(j))));
-    }
-    imp_probs(j) = tempval;
+  arma::vec w_trans = w;
+  arma::vec w_trans_new = w;
+  arma::vec w_new = w;
+  for(arma::uword j = 0; j < w.n_elem; j++){
+    w_trans(j) = log(w(j) / (1 - w(j)));
+    w_trans_new(j) = w_trans(j) + arma::randn() * sqrt(var_MH_step);
+    w_new(j) = exp(w_trans_new(j)) / (1 + exp(w_trans_new(j)));
   }
 
-  int index = rintnunif_log(imp_probs);
-  w = arma::trans(uvals.row(index));
+  tempval = 0.0;
+  for(arma::uword g = 0; g < ngr; g++){
 
+    tempval += (mass * wei - 1) * log(w_new(g)) -
+      (mass * wei + 1) * log(1 - w_new(g)) -
+      (mass * wei - 1) * log(w(g)) +
+      (mass * wei + 1) * log(1 - w(g));
+
+    for(arma::uword i = 0; i < n; i++){
+      if(group(i) == g + 1){
+        tempval += log(w_new(g) * temp_proc_cum(i,0) +
+          (1 - w_new(g)) * temp_proc_cum(i,1)) -
+          log(w(g) * temp_proc_cum(i,0) +
+          (1 - w(g)) * temp_proc_cum(i,1));
+      }
+    }
+
+    tempval += (- ngr * mass * wei - mass * (1 - wei)) *
+      log(1 + arma::accu(w_new / (1 - w_new))) -
+      (- ngr * mass * wei - mass * (1 - wei)) *
+      log(1 + arma::accu(w / (1 - w)));
+  }
+
+  // Rcpp::Rcout << tempval;
+  if(log(arma::randu()) <= tempval){
+    w = w_new;
+  }
 }

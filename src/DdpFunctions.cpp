@@ -288,19 +288,19 @@ void clust_update_DDP(arma::vec data,
 
     // compute the probability of each block
     for(arma::uword j = 0; j < k; j++){
-      probs_upd(j) = probjoin_complete(index)(j) *
-        arma::normpdf(data(i), mujoin_complete(index)(j),
+      probs_upd(j) = log(probjoin_complete(index)(j)) +
+        arma::log_normpdf(data(i), mujoin_complete(index)(j),
                       sqrt(s2join_complete(index)(j)));
 
       if(j < max_val(index)){
-        temp_proc_cum(i, 0) += probs_upd(j);
+        temp_proc_cum(i, 0) += exp(probs_upd(j));
       } else {
-        temp_proc_cum(i, 1) += probs_upd(j);
+        temp_proc_cum(i, 1) += exp(probs_upd(j));
       }
     }
 
     // sample the allocation, if new update new_val
-    clust(i) = rintnunif(probs_upd);
+    clust(i) = rintnunif_log(probs_upd);
 
     if(clust(i) >= max_val(index)){
       group_log(i) = 0;
@@ -421,6 +421,13 @@ void update_w_DDP(arma::vec &w,
           (1 - w_new(g)) * temp_proc_cum(i,1)) -
           log(w(g) * temp_proc_cum(i,0) +
           (1 - w(g)) * temp_proc_cum(i,1));
+        // if(group_log(i) == 0){
+        //   tempval += log(1 - w_new(g)) -
+        //     log(1 - w(g));
+        // } else {
+        //   tempval += log(w_new(g)) -
+        //     log(w(g));
+        // }
       }
     }
 

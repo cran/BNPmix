@@ -1,4 +1,4 @@
-dc3d70a152cba6f2156995962d0c885c *DESCRIPTION
+1067b50e92afc5f27aa09876b1874751 *DESCRIPTION
 094ed05c246beac5cefe3ff9bb9e8b2a *LICENSE
 22f5cfc9dadf0e66d4d8b2c6225e4f8b *NAMESPACE
 b4fe12876c37f8a22cde06e9701eecf0 *R/BNPmix-package.R
@@ -15,7 +15,7 @@ f01e861709eaa84cfd4402bb4fed6d33 *build/vignette.rds
 7bc0696269f720069640a82794fd648f *data/CPP.RData
 5dd186b31212cd92a6d26a8370a9ba3b *inst/CITATION
 2cc75042225c9102119ff11aa4e896aa *inst/doc/BNPmix.ltx
-871e409550037c6efdfa4ede97139695 *inst/doc/BNPmix.pdf
+cc16f266c2f5a9427c80d951d483c38b *inst/doc/BNPmix.pdf
 8b9bf6cb2f41424934f813d29e6368a3 *man/BNPdens.Rd
 fafa57addab7de304240e124d80f5e4f *man/BNPdens2coda.BNPdens.Rd
 027a51b6748494f0ecfa73a5826e965f *man/BNPdens2coda.Rd
@@ -81,7 +81,7 @@ ba1ed99be932727f7a99399a210627a3 *src/cICS.cpp
 3b66c9d163fa87b988e0c633fb7e5d2d *src/cSLI.cpp
 e373ae4658394930732293c152ae9a2e *src/est_partition.cpp
 2cc75042225c9102119ff11aa4e896aa *vignettes/BNPmix.ltx
-4eface4219072e7607cf579422247ef6 *vignettes/BNPmix_ref.bib
+77a4e7d71bf93a884d92b36ef44db336 *vignettes/BNPmix_ref.bib
 b028423325aa8c187aaf295e45feba9a *vignettes/Figures/ddp.pdf
 11d52c2d3314fdbeef7bb3a8ad098ba0 *vignettes/Figures/dendro.pdf
 ea35014ab51ff353783b96f706b90b73 *vignettes/Figures/mosaic.pdf
